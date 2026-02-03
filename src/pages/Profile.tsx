@@ -180,21 +180,21 @@ const SectionCard = React.memo(({
 
     return (
         <motion.div
-            className={`${themeConfig.card} p-6 rounded-xl shadow-sm border dark:border-gray-700`}
+            className="p-6 rounded-xl shadow-sm border border-gray-200 bg-white"
             variants={animationVariants}
         >
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <Icon className={`w-5 h-5 ${themeConfig.primary.replace('bg-', 'text-')}`} />
-                    <h3 className={`text-lg font-semibold ${themeConfig.text}`}>{title}</h3>
+                    <Icon className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
                 </div>
                 {sectionKey && onToggleVisibility && (
                     <motion.button
                         onClick={onToggleVisibility}
-                        className={`p-2 rounded-lg ${themeConfig.background} hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
+                        className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                         whileTap={{ scale: 0.95 }}
                     >
-                        {isVisible ? <Eye size={18} className={themeConfig.text} /> : <EyeOff size={18} className={themeConfig.textSecondary} />}
+                        {isVisible ? <Eye size={18} className="text-gray-800" /> : <EyeOff size={18} className="text-gray-500" />}
                     </motion.button>
                 )}
             </div>
@@ -578,304 +578,317 @@ export function Profile() {
     };
 
     return (
-        <motion.div
-            className={`p-4 sm:p-6 pb-32 md:pb-28 ${themeConfig.background} min-h-screen`}
-            variants={animationVariants} initial="initial" animate="animate"
-        >
-            <div className="max-w-6xl mx-auto">
-                <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
-                    <h1 className={`text-3xl font-bold ${themeConfig.text}`}>My Profile</h1>
-                    <div className="flex gap-3">
-                        <motion.button
-                            onClick={() => navigate('/settings')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${themeConfig.background} hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600`}
-                            whileTap={{ scale: 0.95 }}
-                            title="Settings"
-                        >
-                            <Settings size={18} className={themeConfig.text} />
-                        </motion.button>
-                        <motion.button
-                            onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isEditing ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            {isEditing ? <Save size={18} /> : <Edit size={18} />}
-                            {isEditing ? 'Save' : 'Edit'}
-                        </motion.button>
-                    </div>
-                </div>
+        <div className="min-h-screen blue-background relative overflow-hidden">
+            {/* Decorative floating dots */}
+            <div className="floating-dot dot-white w-3 h-3 top-[10%] left-[5%] animate-float-slow" />
+            <div className="floating-dot dot-outline w-4 h-4 top-[8%] left-[8%] animate-pulse-slow" />
+            <div className="floating-dot dot-white w-2 h-2 top-[15%] right-[10%] animate-float-medium" />
+            <div className="floating-dot dot-outline w-5 h-5 top-[20%] right-[5%] animate-float-slow" style={{ animationDelay: '1s' }} />
+            <div className="floating-dot dot-filled-light w-3 h-3 bottom-[15%] left-[8%] animate-float-medium" style={{ animationDelay: '0.5s' }} />
+            <div className="floating-dot dot-white w-2 h-2 bottom-[10%] right-[12%] animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
+            <div className="floating-dot dot-outline w-3 h-3 top-[50%] left-[3%] animate-float-slow" style={{ animationDelay: '2s' }} />
+            <div className="floating-dot dot-white w-2 h-2 bottom-[30%] right-[5%] animate-float-medium" style={{ animationDelay: '0.8s' }} />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    {/* Profile Card */}
-                    <motion.div className="lg:col-span-1" variants={animationVariants}>
-                        <div className="w-full h-80 [perspective:1000px]" onClick={() => !isEditing && setIsFlipped(!isFlipped)}>
-                            <motion.div
-                                className="relative w-full h-full text-center [transform-style:preserve-3d] transition-transform duration-700"
-                                animate={{ rotateY: isFlipped ? 180 : 0 }}
+            <motion.div
+                className="p-4 sm:p-6 pb-32 md:pb-28"
+                variants={animationVariants} initial="initial" animate="animate"
+            >
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+                        <h1 className="text-3xl font-bold text-white">My Profile</h1>
+                        <div className="flex gap-3">
+                            <motion.button
+                                onClick={() => navigate('/settings')}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors bg-white/20 hover:bg-white/30 border border-white/40 text-white backdrop-blur-sm"
+                                whileTap={{ scale: 0.95 }}
+                                title="Settings"
                             >
-                                {/* Front Side */}
-                                <div className={`absolute w-full h-full p-6 rounded-2xl shadow-lg ${themeConfig.card} border dark:border-gray-700 [backface-visibility:hidden] flex flex-col items-center justify-center`}>
-                                    <div className="relative">
-                                        <img
-                                            src={userData.profilePhoto}
-                                            alt="Profile"
-                                            className={`w-32 h-32 rounded-full object-cover border-4 border-blue-200 dark:border-blue-800 ${!isEditing ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
-                                            onClick={(e) => {
-                                                if (!isEditing) {
-                                                    e.stopPropagation();
-                                                    setShowPhotoZoom(true);
-                                                }
-                                            }}
-                                        />
-                                        {isEditing && (
-                                            <>
-                                                <motion.button
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
-                                                    whileTap={{ scale: 0.9 }}
-                                                    title="Upload Photo"
-                                                >
-                                                    <Upload size={16} />
-                                                </motion.button>
-                                                {userData.profilePhoto !== initialUserData.profilePhoto && (
-                                                    <motion.button
-                                                        onClick={handleRemovePhoto}
-                                                        className="absolute top-0 right-0 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
-                                                        whileTap={{ scale: 0.9 }}
-                                                        title="Remove Photo"
-                                                    >
-                                                        <X size={16} />
-                                                    </motion.button>
-                                                )}
-                                            </>
-                                        )}
-                                        <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
-                                    </div>
-                                    <input type="text" name="fullName" value={userData.fullName} onChange={handleInputChange} disabled={!isEditing} className={`mt-4 text-2xl font-bold text-center w-full bg-transparent ${themeConfig.text} ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
-                                    <p className={`mt-4 text-xs ${themeConfig.textSecondary}`}>{isEditing ? 'Click save to apply' : 'Click to flip for more details'}</p>
-                                </div>
-                                {/* Back Side */}
-                                <div className={`absolute w-full h-full p-6 rounded-2xl shadow-lg ${themeConfig.card} border dark:border-gray-700 [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col justify-center`}>
-                                    <h3 className={`text-xl font-bold mb-4 ${themeConfig.text} flex items-center gap-2`}><BookOpen size={20} />Education</h3>
-                                    <div className="text-left">
-                                        <p className={`text-sm ${themeConfig.textSecondary}`}>{gradingSystem === 'college' ? 'College/University:' : 'School Name:'}</p>
-                                        <input type="text" name="education.institution" value={userData.education.institution} onChange={handleInputChange} disabled={!isEditing} className={`font-semibold w-full bg-transparent ${themeConfig.text} ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
-                                        <p className={`text-sm mt-2 ${themeConfig.textSecondary}`}>{gradingSystem === 'college' ? 'Year/Semester:' : 'Class/Grade:'}</p>
-                                        <input type="text" name="education.grade" value={userData.education.grade} onChange={handleInputChange} disabled={!isEditing} className={`font-semibold w-full bg-transparent ${themeConfig.text} ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
-                                    </div>
-                                    <p className={`mt-4 text-xs text-center ${themeConfig.textSecondary}`}>{isEditing ? 'Click save to apply' : 'Click to flip back'}</p>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </motion.div>
-
-                    {/* Profile Completeness */}
-                    <motion.div className={`lg:col-span-2 ${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`} variants={animationVariants}>
-                        <div className="flex flex-col sm:flex-row items-center gap-6">
-                            <div className="text-center">
-                                <p className={`font-semibold mb-2 ${themeConfig.textSecondary}`}>Profile Completeness</p>
-                                <ProgressCircle progress={userData.profileCompleteness} />
-                            </div>
-                            <div className="flex-1 w-full">
-                                <h4 className={`text-lg font-bold ${themeConfig.text} mb-3`}>Quick Stats</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-3 rounded-lg bg-transparent border border-gray-200 dark:border-gray-700">
-                                        <p className={`text-2xl font-bold ${themeConfig.text}`}>
-                                            {achievements.filter((a: any) => a.claimed).length}
-                                        </p>
-                                        <p className={`text-sm ${themeConfig.textSecondary}`}>Claimed Badges</p>
-                                    </div>
-                                    <div className="p-3 rounded-lg bg-transparent border border-gray-200 dark:border-gray-700">
-                                        <p className={`text-2xl font-bold ${themeConfig.text}`}>
-                                            {Object.values(userData.sectionVisibility).filter(v => v).length}
-                                        </p>
-                                        <p className={`text-sm ${themeConfig.textSecondary}`}>Active Sections</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-
-
-                {/* Contact Information */}
-                <SectionCard
-                    title="Contact Information"
-                    icon={Mail}
-                    sectionKey="contact"
-                    isVisible={userData.sectionVisibility.contact}
-                    onToggleVisibility={() => toggleSectionVisibility('contact')}
-                    themeConfig={themeConfig}
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className={`text-sm ${themeConfig.textSecondary} flex items-center gap-2 mb-2`}>
-                                <Mail size={16} /> Email
-                            </label>
-                            <input
-                                type="email"
-                                name="contact.email"
-                                value={userData.contact?.email || ''}
-                                onChange={handleInputChange}
-                                disabled={!isEditing}
-                                className={`w-full p-3 rounded-lg bg-transparent ${themeConfig.text} ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300 dark:border-gray-600'}`}
-                            />
-                        </div>
-                        <div>
-                            <label className={`text-sm ${themeConfig.textSecondary} flex items-center gap-2 mb-2`}>
-                                <Phone size={16} /> Phone
-                            </label>
-                            <input
-                                type="tel"
-                                name="contact.phone"
-                                value={userData.contact?.phone || ''}
-                                onChange={handleInputChange}
-                                disabled={!isEditing}
-                                className={`w-full p-3 rounded-lg bg-transparent ${themeConfig.text} ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300 dark:border-gray-600'}`}
-                            />
+                                <Settings size={18} />
+                            </motion.button>
+                            <motion.button
+                                onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isEditing ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                {isEditing ? <Save size={18} /> : <Edit size={18} />}
+                                {isEditing ? 'Save' : 'Edit'}
+                            </motion.button>
                         </div>
                     </div>
-                </SectionCard>
 
-                {/* About Me */}
-                <SectionCard
-                    title="About Me"
-                    icon={UserIcon}
-                    sectionKey="bio"
-                    isVisible={userData.sectionVisibility.bio}
-                    onToggleVisibility={() => toggleSectionVisibility('bio')}
-                    themeConfig={themeConfig}
-                >
-                    <textarea
-                        name="bio"
-                        value={userData.bio || ''}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        rows={4}
-                        className={`w-full p-3 rounded-lg ${themeConfig.background} ${themeConfig.text} ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300 dark:border-gray-600'} resize-none`}
-                        placeholder="Tell us about yourself..."
-                    />
-                </SectionCard>
-
-                {/* Achievements & Badges */}
-                <SectionCard
-                    title="Achievements & Badges 🏆"
-                    icon={Award}
-                    sectionKey="achievements"
-                    isVisible={userData.sectionVisibility.achievements}
-                    onToggleVisibility={() => toggleSectionVisibility('achievements')}
-                    themeConfig={themeConfig}
-                >
-                    <div className="space-y-3">
-                        {achievements.map((achievement: any, index: number) => {
-                            const progressPercentage = (achievement.progress / achievement.maxProgress) * 100;
-
-                            return (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        {/* Profile Card */}
+                        <motion.div className="lg:col-span-1" variants={animationVariants}>
+                            <div className="w-full h-80 [perspective:1000px]" onClick={() => !isEditing && setIsFlipped(!isFlipped)}>
                                 <motion.div
-                                    key={achievement.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className={`p-4 rounded-xl border-2 ${achievement.claimed
-                                        ? 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-400 dark:border-yellow-600'
-                                        : achievement.unlocked
-                                            ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-400 dark:border-blue-600'
-                                            : `${themeConfig.background} border-gray-300 dark:border-gray-600 opacity-60`
-                                        }`}
+                                    className="relative w-full h-full text-center [transform-style:preserve-3d] transition-transform duration-700"
+                                    animate={{ rotateY: isFlipped ? 180 : 0 }}
                                 >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-4xl">{achievement.icon}</span>
-                                            <div>
-                                                <h4 className={`font-bold ${themeConfig.text}`}>
-                                                    {achievement.name}
-                                                    {achievement.claimed && <span className="ml-2 text-yellow-500">✓</span>}
-                                                </h4>
-                                                <p className={`text-sm ${themeConfig.textSecondary}`}>
-                                                    {achievement.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {achievement.unlocked && !achievement.claimed && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => claimAchievement(achievement.id)}
-                                                className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium text-sm"
-                                            >
-                                                Claim
-                                            </motion.button>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-xs">
-                                            <span className={themeConfig.textSecondary}>Progress</span>
-                                            <span className={`font-semibold ${achievement.unlocked ? 'text-green-600 dark:text-green-400' : themeConfig.textSecondary}`}>
-                                                {achievement.progress}/{achievement.maxProgress}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                            <motion.div
-                                                className={`h-2 rounded-full ${achievement.claimed
-                                                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
-                                                    : achievement.unlocked
-                                                        ? 'bg-gradient-to-r from-blue-500 to-purple-500'
-                                                        : 'bg-gray-400 dark:bg-gray-600'
-                                                    }`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${progressPercentage}%` }}
-                                                transition={{ duration: 1, delay: index * 0.1 }}
+                                    {/* Front Side */}
+                                    <div className="absolute w-full h-full p-6 rounded-2xl shadow-lg bg-white border border-gray-200 [backface-visibility:hidden] flex flex-col items-center justify-center">
+                                        <div className="relative">
+                                            <img
+                                                src={userData.profilePhoto}
+                                                alt="Profile"
+                                                className={`w-32 h-32 rounded-full object-cover border-4 border-blue-200 dark:border-blue-800 ${!isEditing ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                                                onClick={(e) => {
+                                                    if (!isEditing) {
+                                                        e.stopPropagation();
+                                                        setShowPhotoZoom(true);
+                                                    }
+                                                }}
                                             />
+                                            {isEditing && (
+                                                <>
+                                                    <motion.button
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+                                                        whileTap={{ scale: 0.9 }}
+                                                        title="Upload Photo"
+                                                    >
+                                                        <Upload size={16} />
+                                                    </motion.button>
+                                                    {userData.profilePhoto !== initialUserData.profilePhoto && (
+                                                        <motion.button
+                                                            onClick={handleRemovePhoto}
+                                                            className="absolute top-0 right-0 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                                                            whileTap={{ scale: 0.9 }}
+                                                            title="Remove Photo"
+                                                        >
+                                                            <X size={16} />
+                                                        </motion.button>
+                                                    )}
+                                                </>
+                                            )}
+                                            <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
                                         </div>
+                                        <input type="text" name="fullName" value={userData.fullName} onChange={handleInputChange} disabled={!isEditing} className={`mt-4 text-2xl font-bold text-center w-full bg-transparent text-gray-800 ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
+                                        <p className="mt-4 text-xs text-gray-500">{isEditing ? 'Click save to apply' : 'Click to flip for more details'}</p>
+                                    </div>
+                                    {/* Back Side */}
+                                    <div className="absolute w-full h-full p-6 rounded-2xl shadow-lg bg-white border border-gray-200 [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col justify-center">
+                                        <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2"><BookOpen size={20} />Education</h3>
+                                        <div className="text-left">
+                                            <p className="text-sm text-gray-500">{gradingSystem === 'college' ? 'College/University:' : 'School Name:'}</p>
+                                            <input type="text" name="education.institution" value={userData.education.institution} onChange={handleInputChange} disabled={!isEditing} className={`font-semibold w-full bg-transparent text-gray-800 ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
+                                            <p className="text-sm mt-2 text-gray-500">{gradingSystem === 'college' ? 'Year/Semester:' : 'Class/Grade:'}</p>
+                                            <input type="text" name="education.grade" value={userData.education.grade} onChange={handleInputChange} disabled={!isEditing} className={`font-semibold w-full bg-transparent text-gray-800 ${isEditing ? 'border-b-2 border-blue-500' : ''}`} />
+                                        </div>
+                                        <p className="mt-4 text-xs text-center text-gray-500">{isEditing ? 'Click save to apply' : 'Click to flip back'}</p>
                                     </div>
                                 </motion.div>
-                            );
-                        })}
-                    </div>
-                    <div className={`mt-4 p-3 rounded-lg ${themeConfig.background} text-center`}>
-                        <p className={`text-sm ${themeConfig.textSecondary}`}>
-                            {achievements.filter((a: any) => a.claimed).length} / {achievements.length} Claimed
-                        </p>
-                    </div>
-                </SectionCard>
-            </div>
-
-            {/* Photo Zoom Modal */}
-            <AnimatePresence>
-                {showPhotoZoom && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowPhotoZoom(false)}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.5, opacity: 0 }}
-                            transition={{ type: "spring", damping: 25 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="relative max-w-4xl max-h-[90vh] w-full"
-                        >
-                            <img
-                                src={userData.profilePhoto}
-                                alt="Profile Zoomed"
-                                className="w-full h-full object-contain rounded-2xl shadow-2xl"
-                            />
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => setShowPhotoZoom(false)}
-                                className="absolute top-4 right-4 bg-red-500 text-white p-3 rounded-full hover:bg-red-600 shadow-lg"
-                            >
-                                <X size={24} />
-                            </motion.button>
+                            </div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+
+                        {/* Profile Completeness */}
+                        <motion.div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-gray-200" variants={animationVariants}>
+                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                                <div className="text-center">
+                                    <p className="font-semibold mb-2 text-gray-600">Profile Completeness</p>
+                                    <ProgressCircle progress={userData.profileCompleteness} />
+                                </div>
+                                <div className="flex-1 w-full">
+                                    <h4 className="text-lg font-bold text-gray-800 mb-3">Quick Stats</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
+                                            <p className="text-2xl font-bold text-gray-800">
+                                                {achievements.filter((a: any) => a.claimed).length}
+                                            </p>
+                                            <p className="text-sm text-gray-600">Claimed Badges</p>
+                                        </div>
+                                        <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
+                                            <p className="text-2xl font-bold text-gray-800">
+                                                {Object.values(userData.sectionVisibility).filter(v => v).length}
+                                            </p>
+                                            <p className="text-sm text-gray-600">Active Sections</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+
+
+                    {/* Contact Information */}
+                    <SectionCard
+                        title="Contact Information"
+                        icon={Mail}
+                        sectionKey="contact"
+                        isVisible={userData.sectionVisibility.contact}
+                        onToggleVisibility={() => toggleSectionVisibility('contact')}
+                        themeConfig={themeConfig}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm text-gray-600 flex items-center gap-2 mb-2">
+                                    <Mail size={16} /> Email
+                                </label>
+                                <input
+                                    type="email"
+                                    name="contact.email"
+                                    value={userData.contact?.email || ''}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing}
+                                    className={`w-full p-3 rounded-lg bg-gray-50 text-gray-800 ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300'}`}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-600 flex items-center gap-2 mb-2">
+                                    <Phone size={16} /> Phone
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="contact.phone"
+                                    value={userData.contact?.phone || ''}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing}
+                                    className={`w-full p-3 rounded-lg bg-gray-50 text-gray-800 ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300'}`}
+                                />
+                            </div>
+                        </div>
+                    </SectionCard>
+
+                    {/* About Me */}
+                    <SectionCard
+                        title="About Me"
+                        icon={UserIcon}
+                        sectionKey="bio"
+                        isVisible={userData.sectionVisibility.bio}
+                        onToggleVisibility={() => toggleSectionVisibility('bio')}
+                        themeConfig={themeConfig}
+                    >
+                        <textarea
+                            name="bio"
+                            value={userData.bio || ''}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                            rows={4}
+                            className={`w-full p-3 rounded-lg bg-gray-50 text-gray-800 ${isEditing ? 'border-2 border-blue-500' : 'border border-gray-300'} resize-none`}
+                            placeholder="Tell us about yourself..."
+                        />
+                    </SectionCard>
+
+                    {/* Achievements & Badges */}
+                    <SectionCard
+                        title="Achievements & Badges 🏆"
+                        icon={Award}
+                        sectionKey="achievements"
+                        isVisible={userData.sectionVisibility.achievements}
+                        onToggleVisibility={() => toggleSectionVisibility('achievements')}
+                        themeConfig={themeConfig}
+                    >
+                        <div className="space-y-3">
+                            {achievements.map((achievement: any, index: number) => {
+                                const progressPercentage = (achievement.progress / achievement.maxProgress) * 100;
+
+                                return (
+                                    <motion.div
+                                        key={achievement.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className={`p-4 rounded-xl border-2 ${achievement.claimed
+                                            ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-400'
+                                            : achievement.unlocked
+                                                ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-400'
+                                                : 'bg-gray-50 border-gray-300 opacity-60'
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-4xl">{achievement.icon}</span>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800">
+                                                        {achievement.name}
+                                                        {achievement.claimed && <span className="ml-2 text-yellow-500">✓</span>}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-600">
+                                                        {achievement.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {achievement.unlocked && !achievement.claimed && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => claimAchievement(achievement.id)}
+                                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium text-sm"
+                                                >
+                                                    Claim
+                                                </motion.button>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-xs">
+                                                <span className="text-gray-600">Progress</span>
+                                                <span className={`font-semibold ${achievement.unlocked ? 'text-green-600' : 'text-gray-600'}`}>
+                                                    {achievement.progress}/{achievement.maxProgress}
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                                <motion.div
+                                                    className={`h-2 rounded-full ${achievement.claimed
+                                                        ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
+                                                        : achievement.unlocked
+                                                            ? 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                                            : 'bg-gray-400'
+                                                        }`}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${progressPercentage}%` }}
+                                                    transition={{ duration: 1, delay: index * 0.1 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                        <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-100 text-center">
+                            <p className="text-sm text-gray-600">
+                                {achievements.filter((a: any) => a.claimed).length} / {achievements.length} Claimed
+                            </p>
+                        </div>
+                    </SectionCard>
+                </div>
+
+                {/* Photo Zoom Modal */}
+                <AnimatePresence>
+                    {showPhotoZoom && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowPhotoZoom(false)}
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.5, opacity: 0 }}
+                                transition={{ type: "spring", damping: 25 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="relative max-w-4xl max-h-[90vh] w-full"
+                            >
+                                <img
+                                    src={userData.profilePhoto}
+                                    alt="Profile Zoomed"
+                                    className="w-full h-full object-contain rounded-2xl shadow-2xl"
+                                />
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => setShowPhotoZoom(false)}
+                                    className="absolute top-4 right-4 bg-red-500 text-white p-3 rounded-full hover:bg-red-600 shadow-lg"
+                                >
+                                    <X size={24} />
+                                </motion.button>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+        </div>
+        </motion.div >
+        </div >
     );
 }

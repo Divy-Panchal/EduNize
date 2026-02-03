@@ -13,6 +13,7 @@ import { DailyStatsProvider } from './context/DailyStatsContext';
 import { PomodoroProvider } from './context/PomodoroContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AchievementProvider } from './context/AchievementContext';
+import { ChatHistoryProvider } from './context/ChatHistoryContext';
 import { Auth } from './components/Auth';
 import { DarkModeTransition } from './components/DarkModeTransition';
 import { Onboarding } from './components/Onboarding';
@@ -216,31 +217,33 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <ThemeProvider>
-          <AchievementProvider>
-            <TaskProvider>
-              <SubjectProvider>
-                <TimetableProvider>
-                  <GradeProvider>
-                    <DailyStatsProvider>
-                      <PomodoroProvider>
-                        <Router>
-                          <Toaster
-                            position="top-right"
-                            toastOptions={{
-                              style: {
-                                zIndex: 10001,
-                              },
-                            }}
-                          />
-                          <AppContent />
-                        </Router>
-                      </PomodoroProvider>
-                    </DailyStatsProvider>
-                  </GradeProvider>
-                </TimetableProvider>
-              </SubjectProvider>
-            </TaskProvider>
-          </AchievementProvider>
+          <ChatHistoryProvider>
+            <AchievementProvider>
+              <TaskProvider>
+                <SubjectProvider>
+                  <TimetableProvider>
+                    <GradeProvider>
+                      <DailyStatsProvider>
+                        <PomodoroProvider>
+                          <Router>
+                            <Toaster
+                              position="top-right"
+                              toastOptions={{
+                                style: {
+                                  zIndex: 10001,
+                                },
+                              }}
+                            />
+                            <AppContent />
+                          </Router>
+                        </PomodoroProvider>
+                      </DailyStatsProvider>
+                    </GradeProvider>
+                  </TimetableProvider>
+                </SubjectProvider>
+              </TaskProvider>
+            </AchievementProvider>
+          </ChatHistoryProvider>
         </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
