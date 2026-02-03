@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, X, Calculator, FlaskConical, Globe, BookText, Palette, Dumbbell, Music, Code, Languages, TrendingUp, Microscope, Atom, Binary, Lightbulb } from 'lucide-react';
+import { Plus, BookOpen, X, Calculator, FlaskConical, Globe, BookText, Palette, Dumbbell, Music, Code, Languages, TrendingUp, Microscope, Atom, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useSubject } from '../context/SubjectContext';
@@ -38,10 +38,19 @@ export function Subjects() {
       return Code;
     } else if (name.includes('english') || name.includes('language') || name.includes('literature')) {
       return Languages;
+    } else if (name.includes('hindi') || name.includes('हिंदी') || name.includes('हिन्दी')) {
+      // Return a custom component for Hindi that displays the letter 'अ'
+      return ({ className }: { className?: string }) => (
+        <div className={`flex items-center justify-center ${className}`}>
+          <span className="font-bold text-current" style={{ fontSize: '1em', lineHeight: '1' }}>अ</span>
+        </div>
+      );
     } else if (name.includes('econ') || name.includes('business') || name.includes('commerce')) {
       return TrendingUp;
+    } else if (name.includes('social') && name.includes('science')) {
+      return Users; // Users icon for Social Science
     } else if (name.includes('science')) {
-      return Lightbulb;
+      return Atom; // Atom icon for general Science
     } else {
       return BookOpen;
     }
@@ -73,8 +82,12 @@ export function Subjects() {
       return 'from-slate-500 to-slate-600'; // Slate for Computer Science
     } else if (name.includes('english') || name.includes('language') || name.includes('literature')) {
       return 'from-rose-500 to-rose-600'; // Rose for English
+    } else if (name.includes('hindi') || name.includes('हिंदी') || name.includes('हिन्दी')) {
+      return 'from-lime-500 to-lime-600'; // Lime for Hindi
     } else if (name.includes('econ') || name.includes('business') || name.includes('commerce')) {
       return 'from-teal-500 to-teal-600'; // Teal for Economics
+    } else if (name.includes('social') && name.includes('science')) {
+      return 'from-indigo-500 to-indigo-600'; // Indigo for Social Science
     } else if (name.includes('science')) {
       return 'from-blue-500 to-blue-600'; // Blue for Science
     } else {
