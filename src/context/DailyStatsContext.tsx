@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 interface DailyStats {
     date: string; // YYYY-MM-DD format
@@ -10,8 +12,8 @@ interface DailyStats {
 interface DailyStatsContextType {
     studyMinutes: number;
     focusSessions: number;
-    addStudyTime: (minutes: number) => void;
-    incrementFocusSession: () => void;
+    addStudyTime: (minutes: number) => Promise<void>;
+    incrementFocusSession: () => Promise<void>;
     getStudyHours: () => string;
 }
 
@@ -26,8 +28,6 @@ export function DailyStatsProvider({ children }: { children: React.ReactNode }) 
     });
 
     // Get today's date in YYYY-MM-DD format (local timezone)
-    // Note: Uses local timezone for daily reset. If user travels across timezones,
-    // the reset will happen at midnight in their current timezone.
     function getTodayDate(): string {
         const now = new Date();
         const year = now.getFullYear();
@@ -36,49 +36,46 @@ export function DailyStatsProvider({ children }: { children: React.ReactNode }) 
         return `${year}-${month}-${day}`;
     }
 
-    // Load stats from localStorage on mount
+    // Load stats from Firestore with real-time sync
     useEffect(() => {
-        if (user) {
-            const storageKey = `dailyStats_${user.uid}`;
-            const savedStats = localStorage.getItem(storageKey);
-            const today = getTodayDate();
+        if (!user) {
+            setDailyStats({
+                date: getTodayDate(),
+                studyMinutes: 0,
+                focusSessions: 0,
+            });
+            return;
+        }
 
-            if (savedStats) {
-                try {
-                    const parsed: DailyStats = JSON.parse(savedStats);
+        const dailyStatsService = new FirestoreService<DailyStats>(user.uid, 'dailyStats');
+        const today = getTodayDate();
 
-                    // Check if the saved date is today
-                    if (parsed.date === today) {
-                        // Same day, use saved stats
-                        setDailyStats(parsed);
-                    } else {
-                        // New day, reset stats
-                        const newStats: DailyStats = {
-                            date: today,
-                            studyMinutes: 0,
-                            focusSessions: 0,
-                        };
-                        setDailyStats(newStats);
-                        localStorage.setItem(storageKey, JSON.stringify(newStats));
-                    }
-                } catch (error) {
-                    console.error('Failed to parse daily stats:', error);
-                    resetStats();
+        // Subscribe to today's stats
+        const unsubscribe = dailyStatsService.subscribeToDocument(
+            today,
+            (stats) => {
+                if (stats) {
+                    setDailyStats(stats);
+                } else {
+                    // No stats for today, initialize
+                    const newStats: DailyStats = {
+                        date: today,
+                        studyMinutes: 0,
+                        focusSessions: 0,
+                    };
+                    setDailyStats(newStats);
+                    dailyStatsService.setDocument(today, newStats);
                 }
-            } else {
-                // No saved stats, initialize
-                resetStats();
+            },
+            (error) => {
+                console.error('Error loading daily stats:', error);
             }
-        }
-    }, [user]);
+        );
 
-    // Save stats to localStorage whenever they change
-    useEffect(() => {
-        if (user) {
-            const storageKey = `dailyStats_${user.uid}`;
-            localStorage.setItem(storageKey, JSON.stringify(dailyStats));
-        }
-    }, [dailyStats, user]);
+        return () => {
+            unsubscribe();
+        };
+    }, [user]);
 
     // Check for date change every minute
     useEffect(() => {
@@ -91,29 +88,62 @@ export function DailyStatsProvider({ children }: { children: React.ReactNode }) 
         }, 60000); // Check every minute
 
         return () => clearInterval(interval);
-    }, [dailyStats.date]);
+    }, [dailyStats.date, user]);
 
-    const resetStats = () => {
+    const resetStats = async () => {
+        if (!user) return;
+
         const newStats: DailyStats = {
             date: getTodayDate(),
             studyMinutes: 0,
             focusSessions: 0,
         };
         setDailyStats(newStats);
+
+        try {
+            const dailyStatsService = new FirestoreService<DailyStats>(user.uid, 'dailyStats');
+            await dailyStatsService.setDocument(newStats.date, newStats);
+        } catch (error) {
+            console.error('Error resetting daily stats:', error);
+        }
     };
 
-    const addStudyTime = (minutes: number) => {
-        setDailyStats(prev => ({
-            ...prev,
-            studyMinutes: prev.studyMinutes + minutes,
-        }));
+    const addStudyTime = async (minutes: number) => {
+        if (!user) return;
+
+        const updatedStats = {
+            ...dailyStats,
+            studyMinutes: dailyStats.studyMinutes + minutes,
+        };
+        setDailyStats(updatedStats);
+
+        try {
+            const dailyStatsService = new FirestoreService<DailyStats>(user.uid, 'dailyStats');
+            await dailyStatsService.updateDocument(dailyStats.date, {
+                studyMinutes: updatedStats.studyMinutes
+            });
+        } catch (error) {
+            console.error('Error updating study time:', error);
+        }
     };
 
-    const incrementFocusSession = () => {
-        setDailyStats(prev => ({
-            ...prev,
-            focusSessions: prev.focusSessions + 1,
-        }));
+    const incrementFocusSession = async () => {
+        if (!user) return;
+
+        const updatedStats = {
+            ...dailyStats,
+            focusSessions: dailyStats.focusSessions + 1,
+        };
+        setDailyStats(updatedStats);
+
+        try {
+            const dailyStatsService = new FirestoreService<DailyStats>(user.uid, 'dailyStats');
+            await dailyStatsService.updateDocument(dailyStats.date, {
+                focusSessions: updatedStats.focusSessions
+            });
+        } catch (error) {
+            console.error('Error incrementing focus session:', error);
+        }
     };
 
     const getStudyHours = (): string => {

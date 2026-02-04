@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 export interface Note {
     id: string;
@@ -31,174 +34,267 @@ export interface Subject {
     resources: Resource[];
 }
 
-const STORAGE_KEY = 'edunize-subjects';
-
 interface SubjectContextType {
     subjects: Subject[];
-    addSubject: (subject: Omit<Subject, 'id' | 'notes' | 'topics' | 'resources'>) => void;
-    deleteSubject: (id: string) => void;
-    addNote: (subjectId: string, note: Omit<Note, 'id' | 'createdAt'>) => void;
-    deleteNote: (subjectId: string, noteId: string) => void;
-    addTopic: (subjectId: string, topic: Omit<Topic, 'id'>) => void;
-    deleteTopic: (subjectId: string, topicId: string) => void;
-    toggleTopic: (subjectId: string, topicId: string) => void;
-    addResource: (subjectId: string, resource: Omit<Resource, 'id'>) => void;
-    deleteResource: (subjectId: string, resourceId: string) => void;
+    addSubject: (subject: Omit<Subject, 'id' | 'notes' | 'topics' | 'resources'>) => Promise<void>;
+    deleteSubject: (id: string) => Promise<void>;
+    addNote: (subjectId: string, note: Omit<Note, 'id' | 'createdAt'>) => Promise<void>;
+    deleteNote: (subjectId: string, noteId: string) => Promise<void>;
+    addTopic: (subjectId: string, topic: Omit<Topic, 'id'>) => Promise<void>;
+    deleteTopic: (subjectId: string, topicId: string) => Promise<void>;
+    toggleTopic: (subjectId: string, topicId: string) => Promise<void>;
+    addResource: (subjectId: string, resource: Omit<Resource, 'id'>) => Promise<void>;
+    deleteResource: (subjectId: string, resourceId: string) => Promise<void>;
 }
 
 const SubjectContext = createContext<SubjectContextType | undefined>(undefined);
 
 export function SubjectProvider({ children }: { children: React.ReactNode }) {
+    const { user } = useAuth();
     const [subjects, setSubjects] = useState<Subject[]>([]);
-    const isInitialMount = useRef(true);
 
-
-    // Load subjects from localStorage on mount
+    // Load subjects from Firestore with real-time sync
     useEffect(() => {
-        const savedSubjects = localStorage.getItem(STORAGE_KEY);
-        if (savedSubjects) {
-            try {
-                const parsed = JSON.parse(savedSubjects);
-                // Migrate old data format to new format
-                const migratedSubjects = parsed.map((subject: any) => ({
-                    ...subject,
-                    notes: subject.notes || [],
-                    topics: subject.topics || [],
-                    resources: subject.resources || [],
-                }));
-                setSubjects(migratedSubjects);
-            } catch (error) {
-                console.error('Error loading subjects:', error);
-                // Provide user-friendly error feedback
-                if (error instanceof Error) {
-                    alert(`Failed to load subjects: ${error.message}. Your data may be corrupted. Please try refreshing the page.`);
-                }
-                // If there's an error, start fresh
-                setSubjects([]);
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
+        if (!user) {
+            setSubjects([]);
             return;
         }
-        try {
-            localStorage.setItem('edunize-subjects', JSON.stringify(subjects));
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error('Error saving to localStorage:', error);
-            }
-            // Check if it's a quota exceeded error
-            if (error instanceof DOMException && (
-                error.name === 'QuotaExceededError' ||
-                error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-            )) {
-                // Silently fail - the data is still in memory
-                // User will see error when trying to add more files
-                console.warn('localStorage quota exceeded');
-            }
-        }
-    }, [subjects]);
 
-    const addSubject = (subjectData: Omit<Subject, 'id' | 'notes' | 'topics' | 'resources'>) => {
-        const newSubject: Subject = {
-            ...subjectData,
-            id: `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            notes: [],
-            topics: [],
-            resources: [],
+        const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+
+        // Subscribe to real-time subject updates
+        const unsubscribe = subjectService.subscribeToCollection(
+            (firestoreSubjects) => {
+                setSubjects(firestoreSubjects);
+            },
+            (error) => {
+                console.error('Error loading subjects:', error);
+                toast.error('Failed to load subjects. Please check your connection.');
+            }
+        );
+
+        return () => {
+            unsubscribe();
         };
-        setSubjects(prev => [...prev, newSubject]);
+    }, [user]);
+
+    const addSubject = async (subjectData: Omit<Subject, 'id' | 'notes' | 'topics' | 'resources'>) => {
+        if (!user) {
+            toast.error('You must be logged in to add subjects');
+            return;
+        }
+
+        try {
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            const newSubject: Subject = {
+                ...subjectData,
+                id: `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                notes: [],
+                topics: [],
+                resources: [],
+            };
+            await subjectService.setDocument(newSubject.id, newSubject);
+        } catch (error) {
+            console.error('Error adding subject:', error);
+            toast.error('Failed to add subject. Please try again.');
+        }
     };
 
-    const deleteSubject = (id: string) => {
-        setSubjects(prev => prev.filter(subject => subject.id !== id));
+    const deleteSubject = async (id: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete subjects');
+            return;
+        }
+
+        try {
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.deleteDocument(id);
+        } catch (error) {
+            console.error('Error deleting subject:', error);
+            toast.error('Failed to delete subject. Please try again.');
+        }
     };
 
     // Note operations
-    const addNote = (subjectId: string, noteData: Omit<Note, 'id' | 'createdAt'>) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                const newNote: Note = {
-                    ...noteData,
-                    id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    createdAt: new Date().toISOString(),
-                };
-                return { ...subject, notes: [...subject.notes, newNote] };
-            }
-            return subject;
-        }));
+    const addNote = async (subjectId: string, noteData: Omit<Note, 'id' | 'createdAt'>) => {
+        if (!user) {
+            toast.error('You must be logged in to add notes');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const newNote: Note = {
+                ...noteData,
+                id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                createdAt: new Date().toISOString(),
+            };
+
+            const updatedSubject = {
+                ...subject,
+                notes: [...subject.notes, newNote]
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error adding note:', error);
+            toast.error('Failed to add note. Please try again.');
+        }
     };
 
-    const deleteNote = (subjectId: string, noteId: string) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                return { ...subject, notes: subject.notes.filter(note => note.id !== noteId) };
-            }
-            return subject;
-        }));
+    const deleteNote = async (subjectId: string, noteId: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete notes');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const updatedSubject = {
+                ...subject,
+                notes: subject.notes.filter(note => note.id !== noteId)
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            toast.error('Failed to delete note. Please try again.');
+        }
     };
 
     // Topic operations
-    const addTopic = (subjectId: string, topicData: Omit<Topic, 'id'>) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                const newTopic: Topic = {
-                    ...topicData,
-                    id: `topic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                };
-                return { ...subject, topics: [...subject.topics, newTopic] };
-            }
-            return subject;
-        }));
+    const addTopic = async (subjectId: string, topicData: Omit<Topic, 'id'>) => {
+        if (!user) {
+            toast.error('You must be logged in to add topics');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const newTopic: Topic = {
+                ...topicData,
+                id: `topic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            };
+
+            const updatedSubject = {
+                ...subject,
+                topics: [...subject.topics, newTopic]
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error adding topic:', error);
+            toast.error('Failed to add topic. Please try again.');
+        }
     };
 
-    const deleteTopic = (subjectId: string, topicId: string) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                return { ...subject, topics: subject.topics.filter(topic => topic.id !== topicId) };
-            }
-            return subject;
-        }));
+    const deleteTopic = async (subjectId: string, topicId: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete topics');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const updatedSubject = {
+                ...subject,
+                topics: subject.topics.filter(topic => topic.id !== topicId)
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            toast.error('Failed to delete topic. Please try again.');
+        }
     };
 
-    const toggleTopic = (subjectId: string, topicId: string) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                return {
-                    ...subject,
-                    topics: subject.topics.map(topic =>
-                        topic.id === topicId ? { ...topic, completed: !topic.completed } : topic
-                    ),
-                };
-            }
-            return subject;
-        }));
+    const toggleTopic = async (subjectId: string, topicId: string) => {
+        if (!user) {
+            toast.error('You must be logged in to toggle topics');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const updatedSubject = {
+                ...subject,
+                topics: subject.topics.map(topic =>
+                    topic.id === topicId ? { ...topic, completed: !topic.completed } : topic
+                )
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error toggling topic:', error);
+            toast.error('Failed to toggle topic. Please try again.');
+        }
     };
 
     // Resource operations
-    const addResource = (subjectId: string, resourceData: Omit<Resource, 'id'>) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                const newResource: Resource = {
-                    ...resourceData,
-                    id: `resource_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                };
-                return { ...subject, resources: [...subject.resources, newResource] };
-            }
-            return subject;
-        }));
+    const addResource = async (subjectId: string, resourceData: Omit<Resource, 'id'>) => {
+        if (!user) {
+            toast.error('You must be logged in to add resources');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const newResource: Resource = {
+                ...resourceData,
+                id: `resource_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            };
+
+            const updatedSubject = {
+                ...subject,
+                resources: [...subject.resources, newResource]
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error adding resource:', error);
+            toast.error('Failed to add resource. Please try again.');
+        }
     };
 
-    const deleteResource = (subjectId: string, resourceId: string) => {
-        setSubjects(prev => prev.map(subject => {
-            if (subject.id === subjectId) {
-                return { ...subject, resources: subject.resources.filter(resource => resource.id !== resourceId) };
-            }
-            return subject;
-        }));
+    const deleteResource = async (subjectId: string, resourceId: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete resources');
+            return;
+        }
+
+        try {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const updatedSubject = {
+                ...subject,
+                resources: subject.resources.filter(resource => resource.id !== resourceId)
+            };
+
+            const subjectService = new FirestoreService<Subject>(user.uid, 'subjects');
+            await subjectService.setDocument(subjectId, updatedSubject);
+        } catch (error) {
+            console.error('Error deleting resource:', error);
+            toast.error('Failed to delete resource. Please try again.');
+        }
     };
 
     return (

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 // Achievement type definition
 export interface Achievement {
@@ -18,8 +20,8 @@ export interface Achievement {
 interface AchievementContextType {
     achievements: Achievement[];
     checkAchievements: () => void;
-    claimAchievement: (achievementId: string) => void;
-    updateAchievementProgress: (achievementId: string, progress: number) => void;
+    claimAchievement: (achievementId: string) => Promise<void>;
+    updateAchievementProgress: (achievementId: string, progress: number) => Promise<void>;
     getTotalPoints: () => number;
     getUnlockedCount: () => number;
 }
@@ -94,39 +96,49 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
     const { user } = useAuth();
     const [achievements, setAchievements] = useState<Achievement[]>([]);
 
-    // Load achievements from localStorage
+    // Load achievements from Firestore with real-time sync
     useEffect(() => {
         if (!user) {
             setAchievements([]);
             return;
         }
 
-        const storageKey = `achievements_${user.uid}`;
-        const saved = localStorage.getItem(storageKey);
+        const achievementService = new FirestoreService<Achievement>(user.uid, 'achievements');
 
-        if (saved) {
-            try {
-                setAchievements(JSON.parse(saved));
-            } catch (error) {
-                console.error('Failed to parse achievements:', error);
-                setAchievements(DEFAULT_ACHIEVEMENTS);
+        // Subscribe to real-time achievement updates
+        const unsubscribe = achievementService.subscribeToCollection(
+            (firestoreAchievements) => {
+                if (firestoreAchievements.length === 0) {
+                    // Initialize with default achievements if none exist
+                    initializeDefaultAchievements();
+                } else {
+                    setAchievements(firestoreAchievements);
+                }
+            },
+            (error) => {
+                console.error('Error loading achievements:', error);
+                toast.error('Failed to load achievements. Please check your connection.');
             }
-        } else {
-            setAchievements(DEFAULT_ACHIEVEMENTS);
-        }
+        );
+
+        return () => {
+            unsubscribe();
+        };
     }, [user]);
 
-    // Save achievements to localStorage
-    useEffect(() => {
-        if (!user || achievements.length === 0) return;
+    // Initialize default achievements in Firestore
+    const initializeDefaultAchievements = async () => {
+        if (!user) return;
 
-        const storageKey = `achievements_${user.uid}`;
         try {
-            localStorage.setItem(storageKey, JSON.stringify(achievements));
+            const achievementService = new FirestoreService<Achievement>(user.uid, 'achievements');
+            for (const achievement of DEFAULT_ACHIEVEMENTS) {
+                await achievementService.setDocument(achievement.id, achievement);
+            }
         } catch (error) {
-            console.error('Failed to save achievements:', error);
+            console.error('Error initializing achievements:', error);
         }
-    }, [achievements, user]);
+    };
 
     // Check and update achievements based on current stats
     const checkAchievements = useCallback(() => {
@@ -135,80 +147,83 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
         const now = new Date();
         const hour = now.getHours();
 
-        // Get stats from localStorage
+        // Get stats from localStorage (these will be migrated later)
         const completedTasks = parseInt(localStorage.getItem(`completedTasksCount_${user.uid}`) || '0');
         const studyStreak = parseInt(localStorage.getItem(`studyStreak_${user.uid}`) || '0');
         const pomodoroSessions = parseInt(localStorage.getItem('pomodoroSessions') || '0');
 
-        setAchievements(prev => {
-            const updated = [...prev];
-            let hasChanges = false;
+        const achievementService = new FirestoreService<Achievement>(user.uid, 'achievements');
+
+        achievements.forEach(async (achievement) => {
+            let shouldUpdate = false;
+            let newProgress = achievement.progress;
+            let newUnlocked = achievement.unlocked;
 
             // Early Bird - Study before 8 AM
-            if (hour < 8) {
-                const earlyBird = updated.find(a => a.id === 'early_bird');
-                if (earlyBird && !earlyBird.unlocked) {
-                    earlyBird.progress = 1;
-                    earlyBird.unlocked = true;
-                    hasChanges = true;
-                }
+            if (achievement.id === 'early_bird' && hour < 8 && !achievement.unlocked) {
+                newProgress = 1;
+                newUnlocked = true;
+                shouldUpdate = true;
             }
 
             // Night Owl - Study after 10 PM
-            if (hour >= 22) {
-                const nightOwl = updated.find(a => a.id === 'night_owl');
-                if (nightOwl && !nightOwl.unlocked) {
-                    nightOwl.progress = 1;
-                    nightOwl.unlocked = true;
-                    hasChanges = true;
-                }
+            if (achievement.id === 'night_owl' && hour >= 22 && !achievement.unlocked) {
+                newProgress = 1;
+                newUnlocked = true;
+                shouldUpdate = true;
             }
 
             // Streak Master - 7 day streak
-            const streakMaster = updated.find(a => a.id === 'streak_master');
-            if (streakMaster) {
-                const newProgress = Math.min(studyStreak, 7);
-                if (streakMaster.progress !== newProgress) {
-                    streakMaster.progress = newProgress;
-                    hasChanges = true;
+            if (achievement.id === 'streak_master') {
+                const calculatedProgress = Math.min(studyStreak, 7);
+                if (achievement.progress !== calculatedProgress) {
+                    newProgress = calculatedProgress;
+                    shouldUpdate = true;
                 }
-                if (studyStreak >= 7 && !streakMaster.unlocked) {
-                    streakMaster.unlocked = true;
-                    hasChanges = true;
+                if (studyStreak >= 7 && !achievement.unlocked) {
+                    newUnlocked = true;
+                    shouldUpdate = true;
                 }
             }
 
             // Task Crusher - Complete 50 tasks
-            const taskCrusher = updated.find(a => a.id === 'task_crusher');
-            if (taskCrusher) {
-                const newProgress = Math.min(completedTasks, 50);
-                if (taskCrusher.progress !== newProgress) {
-                    taskCrusher.progress = newProgress;
-                    hasChanges = true;
+            if (achievement.id === 'task_crusher') {
+                const calculatedProgress = Math.min(completedTasks, 50);
+                if (achievement.progress !== calculatedProgress) {
+                    newProgress = calculatedProgress;
+                    shouldUpdate = true;
                 }
-                if (completedTasks >= 50 && !taskCrusher.unlocked) {
-                    taskCrusher.unlocked = true;
-                    hasChanges = true;
+                if (completedTasks >= 50 && !achievement.unlocked) {
+                    newUnlocked = true;
+                    shouldUpdate = true;
                 }
             }
 
             // Focus Master - 100 Pomodoro sessions
-            const focusMaster = updated.find(a => a.id === 'focus_master');
-            if (focusMaster) {
-                const newProgress = Math.min(pomodoroSessions, 100);
-                if (focusMaster.progress !== newProgress) {
-                    focusMaster.progress = newProgress;
-                    hasChanges = true;
+            if (achievement.id === 'focus_master') {
+                const calculatedProgress = Math.min(pomodoroSessions, 100);
+                if (achievement.progress !== calculatedProgress) {
+                    newProgress = calculatedProgress;
+                    shouldUpdate = true;
                 }
-                if (pomodoroSessions >= 100 && !focusMaster.unlocked) {
-                    focusMaster.unlocked = true;
-                    hasChanges = true;
+                if (pomodoroSessions >= 100 && !achievement.unlocked) {
+                    newUnlocked = true;
+                    shouldUpdate = true;
                 }
             }
 
-            return hasChanges ? updated : prev;
+            if (shouldUpdate) {
+                try {
+                    await achievementService.updateDocument(achievement.id, {
+                        progress: newProgress,
+                        unlocked: newUnlocked
+                    });
+                } catch (error) {
+                    console.error(`Error updating achievement ${achievement.id}:`, error);
+                }
+            }
         });
-    }, [user]);
+    }, [user, achievements]);
 
     // Listen for achievement check events
     useEffect(() => {
@@ -221,29 +236,42 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
     }, [checkAchievements]);
 
     // Claim achievement
-    const claimAchievement = useCallback((achievementId: string) => {
-        setAchievements(prev =>
-            prev.map(a =>
-                a.id === achievementId && a.unlocked && !a.claimed
-                    ? { ...a, claimed: true }
-                    : a
-            )
-        );
-    }, []);
+    const claimAchievement = useCallback(async (achievementId: string) => {
+        if (!user) return;
+
+        try {
+            const achievementService = new FirestoreService<Achievement>(user.uid, 'achievements');
+            const achievement = achievements.find(a => a.id === achievementId);
+
+            if (achievement && achievement.unlocked && !achievement.claimed) {
+                await achievementService.updateDocument(achievementId, { claimed: true });
+            }
+        } catch (error) {
+            console.error('Error claiming achievement:', error);
+            toast.error('Failed to claim achievement. Please try again.');
+        }
+    }, [user, achievements]);
 
     // Update achievement progress manually
-    const updateAchievementProgress = useCallback((achievementId: string, progress: number) => {
-        setAchievements(prev =>
-            prev.map(a => {
-                if (a.id === achievementId) {
-                    const newProgress = Math.min(progress, a.maxProgress);
-                    const unlocked = newProgress >= a.maxProgress;
-                    return { ...a, progress: newProgress, unlocked };
-                }
-                return a;
-            })
-        );
-    }, []);
+    const updateAchievementProgress = useCallback(async (achievementId: string, progress: number) => {
+        if (!user) return;
+
+        try {
+            const achievement = achievements.find(a => a.id === achievementId);
+            if (!achievement) return;
+
+            const newProgress = Math.min(progress, achievement.maxProgress);
+            const unlocked = newProgress >= achievement.maxProgress;
+
+            const achievementService = new FirestoreService<Achievement>(user.uid, 'achievements');
+            await achievementService.updateDocument(achievementId, {
+                progress: newProgress,
+                unlocked
+            });
+        } catch (error) {
+            console.error('Error updating achievement progress:', error);
+        }
+    }, [user, achievements]);
 
     // Get total points from claimed achievements
     const getTotalPoints = useCallback(() => {

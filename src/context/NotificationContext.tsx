@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 export interface Notification {
     id: string;
@@ -21,58 +24,80 @@ interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
     settings: NotificationSettings;
-    addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
-    markAsRead: (id: string) => void;
-    markAllAsRead: () => void;
-    removeNotification: (id: string) => void;
-    clearAll: () => void;
-    updateSettings: (settings: Partial<NotificationSettings>) => void;
+    addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => Promise<void>;
+    markAsRead: (id: string) => Promise<void>;
+    markAllAsRead: () => Promise<void>;
+    removeNotification: (id: string) => Promise<void>;
+    clearAll: () => Promise<void>;
+    updateSettings: (settings: Partial<NotificationSettings>) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const DEFAULT_SETTINGS: NotificationSettings = {
+    taskReminders: true,
+    pomodoroBreaks: true,
+    weeklyProgress: false,
+    achievementUnlocked: true,
+};
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
-    const [notifications, setNotifications] = useState<Notification[]>(() => {
-        try {
-            const stored = localStorage.getItem('notifications');
-            return stored ? JSON.parse(stored) : [];
-        } catch {
-            return [];
-        }
-    });
+    const { user } = useAuth();
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
 
-    const [settings, setSettings] = useState<NotificationSettings>(() => {
-        try {
-            const stored = localStorage.getItem('notificationSettings');
-            return stored ? JSON.parse(stored) : {
-                taskReminders: true,
-                pomodoroBreaks: true,
-                weeklyProgress: false,
-                achievementUnlocked: true,
-            };
-        } catch {
-            return {
-                taskReminders: true,
-                pomodoroBreaks: true,
-                weeklyProgress: false,
-                achievementUnlocked: true,
-            };
-        }
-    });
-
-    // Persist notifications to localStorage
+    // Load notifications from Firestore with real-time sync
     useEffect(() => {
-        localStorage.setItem('notifications', JSON.stringify(notifications));
-    }, [notifications]);
+        if (!user) {
+            setNotifications([]);
+            setSettings(DEFAULT_SETTINGS);
+            return;
+        }
 
-    // Persist settings to localStorage
-    useEffect(() => {
-        localStorage.setItem('notificationSettings', JSON.stringify(settings));
-    }, [settings]);
+        const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+        const settingsService = new FirestoreService<NotificationSettings>(user.uid, 'settings');
+
+        // Subscribe to real-time notification updates
+        const unsubscribeNotifications = notificationService.subscribeToCollection(
+            (firestoreNotifications) => {
+                // Sort by timestamp (newest first) and limit to 50
+                const sorted = firestoreNotifications
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 50);
+                setNotifications(sorted);
+            },
+            (error) => {
+                console.error('Error loading notifications:', error);
+                toast.error('Failed to load notifications. Please check your connection.');
+            }
+        );
+
+        // Load notification settings
+        const loadSettings = async () => {
+            try {
+                const savedSettings = await settingsService.getDocument('notificationSettings');
+                if (savedSettings) {
+                    setSettings(savedSettings as NotificationSettings);
+                }
+            } catch (error) {
+                console.error('Error loading notification settings:', error);
+            }
+        };
+        loadSettings();
+
+        return () => {
+            unsubscribeNotifications();
+        };
+    }, [user]);
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
-    const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    const addNotification = async (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+        if (!user) {
+            console.warn('Cannot add notification: user not logged in');
+            return;
+        }
+
         // Check if notification type is enabled in settings
         const settingKey = {
             task: 'taskReminders',
@@ -86,36 +111,92 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             return; // Don't add notification if this type is disabled
         }
 
-        const newNotification: Notification = {
-            ...notification,
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: Date.now(),
-            read: false,
-        };
+        try {
+            const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+            const newNotification: Notification = {
+                ...notification,
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: Date.now(),
+                read: false,
+            };
 
-        setNotifications(prev => [newNotification, ...prev].slice(0, 50)); // Keep max 50 notifications
+            await notificationService.setDocument(newNotification.id, newNotification);
+        } catch (error) {
+            console.error('Error adding notification:', error);
+        }
     };
 
-    const markAsRead = (id: string) => {
-        setNotifications(prev =>
-            prev.map(n => (n.id === id ? { ...n, read: true } : n))
-        );
+    const markAsRead = async (id: string) => {
+        if (!user) return;
+
+        try {
+            const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+            await notificationService.updateDocument(id, { read: true });
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
     };
 
-    const markAllAsRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    const markAllAsRead = async () => {
+        if (!user) return;
+
+        try {
+            const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+            const unreadNotifications = notifications.filter(n => !n.read);
+
+            // Update all unread notifications
+            await Promise.all(
+                unreadNotifications.map(n =>
+                    notificationService.updateDocument(n.id, { read: true })
+                )
+            );
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            toast.error('Failed to mark all as read. Please try again.');
+        }
     };
 
-    const removeNotification = (id: string) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+    const removeNotification = async (id: string) => {
+        if (!user) return;
+
+        try {
+            const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+            await notificationService.deleteDocument(id);
+        } catch (error) {
+            console.error('Error removing notification:', error);
+            toast.error('Failed to remove notification. Please try again.');
+        }
     };
 
-    const clearAll = () => {
-        setNotifications([]);
+    const clearAll = async () => {
+        if (!user) return;
+
+        try {
+            const notificationService = new FirestoreService<Notification>(user.uid, 'notifications');
+
+            // Delete all notifications
+            await Promise.all(
+                notifications.map(n => notificationService.deleteDocument(n.id))
+            );
+        } catch (error) {
+            console.error('Error clearing all notifications:', error);
+            toast.error('Failed to clear notifications. Please try again.');
+        }
     };
 
-    const updateSettings = (newSettings: Partial<NotificationSettings>) => {
-        setSettings(prev => ({ ...prev, ...newSettings }));
+    const updateSettings = async (newSettings: Partial<NotificationSettings>) => {
+        if (!user) return;
+
+        try {
+            const updatedSettings = { ...settings, ...newSettings };
+            setSettings(updatedSettings);
+
+            const settingsService = new FirestoreService<NotificationSettings>(user.uid, 'settings');
+            await settingsService.setDocument('notificationSettings', updatedSettings);
+        } catch (error) {
+            console.error('Error updating notification settings:', error);
+            toast.error('Failed to update settings. Please try again.');
+        }
     };
 
     return (
@@ -144,18 +225,13 @@ export function useNotification() {
         return {
             notifications: [],
             unreadCount: 0,
-            settings: {
-                taskReminders: true,
-                pomodoroBreaks: true,
-                weeklyProgress: false,
-                achievementUnlocked: true,
-            },
-            addNotification: () => { },
-            markAsRead: () => { },
-            markAllAsRead: () => { },
-            removeNotification: () => { },
-            clearAll: () => { },
-            updateSettings: () => { },
+            settings: DEFAULT_SETTINGS,
+            addNotification: async () => { },
+            markAsRead: async () => { },
+            markAllAsRead: async () => { },
+            removeNotification: async () => { },
+            clearAll: async () => { },
+            updateSettings: async () => { },
         };
     }
     return context;

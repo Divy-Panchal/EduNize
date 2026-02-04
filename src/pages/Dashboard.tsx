@@ -62,9 +62,12 @@ export function Dashboard() {
   }, [user]);
 
   const gradeStats = React.useMemo(() => getGradeStats(), [getGradeStats]);
-  const completedTasks = tasks.filter(task => task.completed).length;
+  const completedTasks = React.useMemo(() => tasks.filter(task => task.completed).length, [tasks]);
   const totalTasks = tasks.length;
-  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const completionRate = React.useMemo(() =>
+    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
+    [completedTasks, totalTasks]
+  );
 
   // Add sample notifications on first load (only if no notifications exist)
   useEffect(() => {

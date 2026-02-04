@@ -35,6 +35,8 @@ export function Navigation() {
               key={item.path}
               to={item.path}
               className="relative group flex-shrink-0"
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={isActive ? 'page' : undefined}
             >
               <motion.div
                 className="relative flex flex-col items-center justify-center px-4 sm:px-5 md:px-6 py-2"

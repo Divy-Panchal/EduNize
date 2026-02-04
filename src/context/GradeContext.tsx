@@ -1,100 +1,134 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { Grade, SubjectGrade, GradeStats, getLetterGrade } from '../types/grade';
-import { warnIfStorageNearLimit } from '../utils/storageUtils';
+import { FirestoreService } from '../services/firestoreService';
 import toast from 'react-hot-toast';
 
 interface GradeContextType {
     grades: Grade[];
-    addGrade: (grade: Omit<Grade, 'id'>) => void;
-    updateGrade: (id: string, grade: Partial<Grade>) => void;
-    deleteGrade: (id: string) => void;
+    addGrade: (grade: Omit<Grade, 'id'>) => Promise<void>;
+    updateGrade: (id: string, grade: Partial<Grade>) => Promise<void>;
+    deleteGrade: (id: string) => Promise<void>;
     getGradeStats: () => GradeStats;
     getSubjectGrades: (subjectId: string) => Grade[];
     gradingSystem: 'college' | 'school';
-    setGradingSystem: (system: 'college' | 'school') => void;
+    setGradingSystem: (system: 'college' | 'school') => Promise<void>;
 }
 
 const GradeContext = createContext<GradeContextType | undefined>(undefined);
+
+interface GradingSystemSettings {
+    gradingSystem: 'college' | 'school';
+}
 
 export function GradeProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [grades, setGrades] = useState<Grade[]>([]);
     const [gradingSystem, setGradingSystemState] = useState<'college' | 'school'>('college');
 
-    // Load data from localStorage on mount
+    // Load data from Firestore on mount with real-time sync
     useEffect(() => {
-        if (user) {
-            const gradesKey = `grades_${user.uid}`;
-            const savedGrades = localStorage.getItem(gradesKey);
-            if (savedGrades) {
-                try {
-                    setGrades(JSON.parse(savedGrades));
-                } catch (error) {
-                    console.error('Failed to parse grades:', error);
-                    setGrades([]);
-                }
-            }
-
-            const systemKey = `gradingSystem_${user.uid}`;
-            const savedSystem = localStorage.getItem(systemKey);
-            if (savedSystem === 'college' || savedSystem === 'school') {
-                setGradingSystemState(savedSystem);
-            }
+        if (!user) {
+            setGrades([]);
+            setGradingSystemState('college');
+            return;
         }
-    }, [user]);
 
-    const setGradingSystem = (system: 'college' | 'school') => {
-        setGradingSystemState(system);
-        if (user) {
-            localStorage.setItem(`gradingSystem_${user.uid}`, system);
-        }
-    };
+        const gradeService = new FirestoreService<Grade>(user.uid, 'grades');
+        const settingsService = new FirestoreService<GradingSystemSettings>(user.uid, 'settings');
 
-    // Save grades to localStorage whenever they change
-    useEffect(() => {
-        if (user && grades.length >= 0) {
-            const storageKey = `grades_${user.uid}`;
+        // Subscribe to real-time grade updates
+        const unsubscribeGrades = gradeService.subscribeToCollection(
+            (firestoreGrades) => {
+                setGrades(firestoreGrades);
+            },
+            (error) => {
+                console.error('Error loading grades:', error);
+                toast.error('Failed to load grades. Please check your connection.');
+            }
+        );
+
+        // Load grading system preference
+        const loadGradingSystem = async () => {
             try {
-                localStorage.setItem(storageKey, JSON.stringify(grades));
-
-                // Warn if storage is getting full
-                if (warnIfStorageNearLimit()) {
-                    toast.error('Storage is getting full! Consider deleting old grades to free up space.', {
-                        duration: 5000,
-                    });
+                const settings = await settingsService.getDocument('preferences');
+                if (settings?.gradingSystem) {
+                    setGradingSystemState(settings.gradingSystem);
                 }
             } catch (error) {
-                console.error('Failed to save grades to localStorage:', error);
-                // Handle quota exceeded or other localStorage errors
-                if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                    toast.error('Storage quota exceeded! Please delete some old grades to free up space.', {
-                        duration: 6000,
-                    });
-                } else {
-                    console.warn('Could not save grades. Data may not persist.');
-                }
+                console.error('Error loading grading system preference:', error);
+            }
+        };
+        loadGradingSystem();
+
+        return () => {
+            unsubscribeGrades();
+        };
+    }, [user]);
+
+    const setGradingSystem = async (system: 'college' | 'school') => {
+        setGradingSystemState(system);
+        if (user) {
+            try {
+                const settingsService = new FirestoreService<GradingSystemSettings>(user.uid, 'settings');
+                await settingsService.setDocument('preferences', { gradingSystem: system });
+            } catch (error) {
+                console.error('Error saving grading system preference:', error);
+                toast.error('Failed to save grading system preference');
             }
         }
-    }, [grades, user]);
-
-    const addGrade = (gradeData: Omit<Grade, 'id'>) => {
-        const newGrade: Grade = {
-            ...gradeData,
-            id: `grade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        };
-        setGrades(prev => [...prev, newGrade]);
     };
 
-    const updateGrade = (id: string, gradeData: Partial<Grade>) => {
-        setGrades(prev =>
-            prev.map(grade => (grade.id === id ? { ...grade, ...gradeData } : grade))
-        );
+
+    const addGrade = async (gradeData: Omit<Grade, 'id'>) => {
+        if (!user) {
+            toast.error('You must be logged in to add grades');
+            return;
+        }
+
+        try {
+            const gradeService = new FirestoreService<Grade>(user.uid, 'grades');
+            const newGrade: Grade = {
+                ...gradeData,
+                id: `grade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            };
+            await gradeService.setDocument(newGrade.id, newGrade);
+        } catch (error) {
+            console.error('Error adding grade:', error);
+            toast.error('Failed to add grade. Please try again.');
+        }
     };
 
-    const deleteGrade = (id: string) => {
-        setGrades(prev => prev.filter(grade => grade.id !== id));
+    const updateGrade = async (id: string, gradeData: Partial<Grade>) => {
+        if (!user) {
+            toast.error('You must be logged in to update grades');
+            return;
+        }
+
+        try {
+            const gradeService = new FirestoreService<Grade>(user.uid, 'grades');
+            await gradeService.updateDocument(id, gradeData);
+        } catch (error) {
+            console.error('Error updating grade:', error);
+            toast.error('Failed to update grade. Please try again.');
+        }
     };
+
+    const deleteGrade = async (id: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete grades');
+            return;
+        }
+
+        try {
+            const gradeService = new FirestoreService<Grade>(user.uid, 'grades');
+            await gradeService.deleteDocument(id);
+        } catch (error) {
+            console.error('Error deleting grade:', error);
+            toast.error('Failed to delete grade. Please try again.');
+        }
+    };
+
 
     const getSubjectGrades = (subjectId: string): Grade[] => {
         return grades.filter(grade => grade.subjectId === subjectId);

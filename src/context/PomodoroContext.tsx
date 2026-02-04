@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAuth } from './AuthContext';
 import { useDailyStats } from './DailyStatsContext';
 import { getTimeOfDay, updateTimeBasedAchievements } from '../utils/achievementHelpers';
+import { FirestoreService } from '../services/firestoreService';
 import toast from 'react-hot-toast';
 
 export type PomodoroMode = 'work' | 'short' | 'long';
@@ -10,6 +11,12 @@ interface PomodoroDurations {
     work: number;
     short: number;
     long: number;
+}
+
+interface PomodoroSettings {
+    durations: PomodoroDurations;
+    sessions: number;
+    totalMinutes: number;
 }
 
 interface PomodoroContextType {
@@ -31,20 +38,11 @@ interface PomodoroContextType {
     resetTimer: () => void;
     switchMode: (newMode: PomodoroMode, showToast?: boolean) => void;
     setTimeLeft: (time: number) => void;
-    setDurations: (durations: PomodoroDurations) => void;
+    setDurations: (durations: PomodoroDurations) => Promise<void>;
     stopAlarm: () => void;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
-
-const STORAGE_KEYS = {
-    DURATIONS: 'pomodoroDurations',
-    SESSIONS: 'pomodoroSessions',
-    TOTAL_MINUTES: 'pomodoroTotalMinutes',
-    TIMER_STATE: 'pomodoroTimerState',
-    LAST_UPDATE: 'pomodoroLastUpdate',
-    MIGRATION_30MIN: 'pomodoroMigration30Min'
-};
 
 const DEFAULT_DURATIONS = { work: 30 * 60, short: 5 * 60, long: 15 * 60 };
 const MAX_SECONDS = 60 * 60;
@@ -55,108 +53,59 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
     const alarmRef = useRef<HTMLAudioElement | null>(null);
 
-    // Load durations from localStorage
-    const [durations, setDurations] = useState<PomodoroDurations>(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEYS.DURATIONS);
-            const migrated = localStorage.getItem(STORAGE_KEYS.MIGRATION_30MIN);
-
-            if (!saved) return DEFAULT_DURATIONS;
-
-            const parsed = JSON.parse(saved);
-
-            const isValid =
-                parsed.work &&
-                parsed.short &&
-                parsed.long &&
-                Number.isInteger(parsed.work) &&
-                Number.isInteger(parsed.short) &&
-                Number.isInteger(parsed.long) &&
-                parsed.work >= 60 &&
-                parsed.short >= 60 &&
-                parsed.long >= 60 &&
-                parsed.work <= MAX_SECONDS &&
-                parsed.short <= MAX_SECONDS &&
-                parsed.long <= MAX_SECONDS;
-
-            if (isValid) {
-                // One-time migration: update work duration to 30 minutes
-                if (!migrated) {
-                    parsed.work = 30 * 60;
-                    localStorage.setItem(STORAGE_KEYS.DURATIONS, JSON.stringify(parsed));
-                    localStorage.setItem(STORAGE_KEYS.MIGRATION_30MIN, 'true');
-                }
-                return parsed;
-            }
-
-            localStorage.removeItem(STORAGE_KEYS.DURATIONS);
-            return DEFAULT_DURATIONS;
-        } catch (error) {
-            localStorage.removeItem(STORAGE_KEYS.DURATIONS);
-            return DEFAULT_DURATIONS;
-        }
-    });
-
-    // Load timer state from localStorage with time calculation
-    const loadTimerState = () => {
-        try {
-            const savedState = localStorage.getItem(STORAGE_KEYS.TIMER_STATE);
-            const lastUpdate = localStorage.getItem(STORAGE_KEYS.LAST_UPDATE);
-
-            if (savedState && lastUpdate) {
-                const state = JSON.parse(savedState);
-                const elapsed = Math.floor((Date.now() - parseInt(lastUpdate)) / 1000);
-
-                if (state.isActive && state.timeLeft > 0) {
-                    const newTimeLeft = Math.max(0, state.timeLeft - elapsed);
-                    return {
-                        mode: state.mode as PomodoroMode,
-                        timeLeft: newTimeLeft,
-                        isActive: newTimeLeft > 0 ? state.isActive : false
-                    };
-                }
-
-                return {
-                    mode: state.mode as PomodoroMode,
-                    timeLeft: state.timeLeft,
-                    isActive: false
-                };
-            }
-        } catch (error) {
-            console.error('Failed to load timer state:', error);
-        }
-
-        return {
-            mode: 'work' as PomodoroMode,
-            timeLeft: DEFAULT_DURATIONS.work,
-            isActive: false
-        };
-    };
-
-    const initialState = loadTimerState();
-    const [mode, setMode] = useState<PomodoroMode>(initialState.mode);
-    const [timeLeft, setTimeLeft] = useState(initialState.timeLeft);
-    const [isActive, setIsActive] = useState(initialState.isActive);
+    const [durations, setDurationsState] = useState<PomodoroDurations>(DEFAULT_DURATIONS);
+    const [mode, setMode] = useState<PomodoroMode>('work');
+    const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATIONS.work);
+    const [isActive, setIsActive] = useState(false);
     const [isAlarmPlaying, setIsAlarmPlaying] = useState(false);
+    const [sessions, setSessions] = useState(0);
+    const [totalMinutes, setTotalMinutes] = useState(0);
 
-    const [sessions, setSessions] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEYS.SESSIONS);
-        return saved ? parseInt(saved, 10) : 0;
-    });
-
-    const [totalMinutes, setTotalMinutes] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEYS.TOTAL_MINUTES);
-        return saved ? parseInt(saved, 10) : 0;
-    });
-
-    // Persist durations to localStorage
+    // Load Pomodoro settings from Firestore
     useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEYS.DURATIONS, JSON.stringify(durations));
-        } catch (error) {
-            console.error('Failed to save Pomodoro durations:', error);
+        if (!user) {
+            setDurationsState(DEFAULT_DURATIONS);
+            setSessions(0);
+            setTotalMinutes(0);
+            setMode('work');
+            setTimeLeft(DEFAULT_DURATIONS.work);
+            setIsActive(false);
+            return;
         }
-    }, [durations]);
+
+        const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+
+        // Load settings once
+        const loadSettings = async () => {
+            try {
+                const settings = await pomodoroService.getDocument('settings');
+                if (settings) {
+                    setDurationsState(settings.durations || DEFAULT_DURATIONS);
+                    setSessions(settings.sessions || 0);
+                    setTotalMinutes(settings.totalMinutes || 0);
+                }
+            } catch (error) {
+                console.error('Error loading Pomodoro settings:', error);
+            }
+        };
+
+        loadSettings();
+    }, [user]);
+
+    // Save durations to Firestore when they change
+    const setDurations = async (newDurations: PomodoroDurations) => {
+        if (!user) return;
+
+        setDurationsState(newDurations);
+
+        try {
+            const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+            await pomodoroService.updateDocument('settings', { durations: newDurations });
+        } catch (error) {
+            console.error('Error saving Pomodoro durations:', error);
+            toast.error('Failed to save timer settings. Please try again.');
+        }
+    };
 
     // Sync timeLeft with durations when mode changes (only if not active)
     useEffect(() => {
@@ -165,38 +114,37 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         }
     }, [durations, mode, isActive]);
 
-    // Persist sessions
+    // Save sessions to Firestore when they change
     useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEYS.SESSIONS, sessions.toString());
-        } catch (error) {
-            console.error('Failed to save Pomodoro sessions:', error);
-        }
-    }, [sessions]);
+        if (!user || sessions === 0) return;
 
-    // Persist total minutes
-    useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEYS.TOTAL_MINUTES, totalMinutes.toString());
-        } catch (error) {
-            console.error('Failed to save Pomodoro total minutes:', error);
-        }
-    }, [totalMinutes]);
+        const saveSessionsDebounced = setTimeout(async () => {
+            try {
+                const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+                await pomodoroService.updateDocument('settings', { sessions });
+            } catch (error) {
+                console.error('Error saving Pomodoro sessions:', error);
+            }
+        }, 500);
 
-    // Persist timer state
+        return () => clearTimeout(saveSessionsDebounced);
+    }, [sessions, user]);
+
+    // Save total minutes to Firestore when they change
     useEffect(() => {
-        try {
-            const state = {
-                mode,
-                timeLeft,
-                isActive
-            };
-            localStorage.setItem(STORAGE_KEYS.TIMER_STATE, JSON.stringify(state));
-            localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
-        } catch (error) {
-            console.error('Failed to save timer state:', error);
-        }
-    }, [mode, timeLeft, isActive]);
+        if (!user || totalMinutes === 0) return;
+
+        const saveTotalMinutesDebounced = setTimeout(async () => {
+            try {
+                const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+                await pomodoroService.updateDocument('settings', { totalMinutes });
+            } catch (error) {
+                console.error('Error saving Pomodoro total minutes:', error);
+            }
+        }, 1000);
+
+        return () => clearTimeout(saveTotalMinutesDebounced);
+    }, [totalMinutes, user]);
 
     // Play alarm sound
     const playAlarm = useCallback(() => {

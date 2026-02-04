@@ -189,7 +189,10 @@ export function Auth() {
                   className="clean-input"
                   placeholder="Email"
                   required
+                  aria-label="Email address"
+                  aria-describedby="email-description"
                 />
+                <span id="email-description" className="sr-only">Enter your email address to sign in or create an account</span>
               </div>
 
               {/* Password Field */}
@@ -203,11 +206,15 @@ export function Auth() {
                   className="clean-input pr-12"
                   placeholder="Password"
                   required
+                  aria-label="Password"
+                  aria-describedby="password-description"
                 />
+                <span id="password-description" className="sr-only">Enter your password (minimum 6 characters)</span>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -253,8 +260,8 @@ export function Auth() {
                         type="button"
                         onClick={() => setFormData({ ...formData, studentType: 'college' })}
                         className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${formData.studentType === 'college'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
                           }`}
                       >
                         <GraduationCap className="w-5 h-5" />
@@ -264,8 +271,8 @@ export function Auth() {
                         type="button"
                         onClick={() => setFormData({ ...formData, studentType: 'school' })}
                         className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${formData.studentType === 'school'
-                            ? 'border-teal-500 bg-teal-50 text-teal-700'
-                            : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
                           }`}
                       >
                         <School className="w-5 h-5" />

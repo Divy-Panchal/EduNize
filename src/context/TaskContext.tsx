@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { getTimeOfDay, updateTimeBasedAchievements, updateDailyTaskCount } from '../utils/achievementHelpers';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 export interface Task {
   id: string;
@@ -16,10 +18,10 @@ export interface Task {
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-  toggleTask: (id: string) => void;
+  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  toggleTask: (id: string) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -27,137 +29,134 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Load tasks from Firestore with real-time sync
   useEffect(() => {
-    const savedTasks = localStorage.getItem('eduorganize-tasks');
-    if (savedTasks) {
-      try {
-        const parsed = JSON.parse(savedTasks);
-        // Validate data structure
-        if (Array.isArray(parsed) && parsed.every(task =>
-          task.id && task.title && task.priority && task.dueDate
-        )) {
-          setTasks(parsed);
-        } else {
-          console.error('Invalid task data structure');
-          setTasks([]);
-        }
-      } catch (error) {
-        console.error('Failed to parse tasks from localStorage:', error);
-        setTasks([]);
-      }
-    } else {
-      // Sample data for demo
-      setTasks([
-        {
-          id: '1',
-          title: 'Complete Math Assignment',
-          description: 'Finish calculus problems chapter 5',
-          completed: false,
-          priority: 'high',
-          dueDate: '2025-01-20',
-          category: 'Mathematics',
-          createdAt: '2025-01-15T10:00:00Z'
-        },
-        {
-          id: '2',
-          title: 'Read History Chapter',
-          description: 'World War II section',
-          completed: true,
-          priority: 'medium',
-          dueDate: '2025-01-18',
-          category: 'History',
-          createdAt: '2025-01-14T14:30:00Z'
-        }
-      ]);
+    if (!user) {
+      setTasks([]);
+      return;
     }
-    setIsInitialized(true);
-  }, []);
 
-  useEffect(() => {
-    if (!isInitialized) return;
+    const taskService = new FirestoreService<Task>(user.uid, 'tasks');
+
+    // Subscribe to real-time task updates
+    const unsubscribe = taskService.subscribeToCollection(
+      (firestoreTasks) => {
+        setTasks(firestoreTasks);
+      },
+      (error) => {
+        console.error('Error loading tasks:', error);
+        toast.error('Failed to load tasks. Please check your connection.');
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+
+
+  const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    if (!user) {
+      toast.error('You must be logged in to add tasks');
+      return;
+    }
 
     try {
-      localStorage.setItem('eduorganize-tasks', JSON.stringify(tasks));
+      const taskService = new FirestoreService<Task>(user.uid, 'tasks');
+      const newTask: Task = {
+        ...taskData,
+        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date().toISOString()
+      };
+      await taskService.setDocument(newTask.id, newTask);
     } catch (error) {
-      console.error('Failed to save tasks to localStorage:', error);
-      if (error instanceof DOMException && (
-        error.name === 'QuotaExceededError' ||
-        error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-      )) {
-        alert('Storage quota exceeded. Please delete some old tasks to free up space.');
-      }
+      console.error('Error adding task:', error);
+      toast.error('Failed to add task. Please try again.');
     }
-  }, [tasks, isInitialized]);
-
-  const addTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString()
-    };
-    setTasks(prev => [...prev, newTask]);
   };
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, ...updates } : task
-    ));
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    if (!user) {
+      toast.error('You must be logged in to update tasks');
+      return;
+    }
+
+    try {
+      const taskService = new FirestoreService<Task>(user.uid, 'tasks');
+      await taskService.updateDocument(id, updates);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Failed to update task. Please try again.');
+    }
   };
 
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+  const deleteTask = async (id: string) => {
+    if (!user) {
+      toast.error('You must be logged in to delete tasks');
+      return;
+    }
+
+    try {
+      const taskService = new FirestoreService<Task>(user.uid, 'tasks');
+      await taskService.deleteDocument(id);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task. Please try again.');
+    }
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(prev => {
-      const task = prev.find(t => t.id === id);
-      if (!task) return prev;
+
+
+  const toggleTask = async (id: string) => {
+    if (!user) {
+      toast.error('You must be logged in to toggle tasks');
+      return;
+    }
+
+    try {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
 
       const wasCompleted = task.completed;
       const willBeCompleted = !wasCompleted;
 
       // Update completed tasks counter
-      if (user?.uid) {
-        try {
-          const currentCount = parseInt(localStorage.getItem(`completedTasksCount_${user.uid}`) || '0');
+      const currentCount = parseInt(localStorage.getItem(`completedTasksCount_${user.uid}`) || '0');
 
-          if (willBeCompleted && !wasCompleted) {
-            // Incrementing when completing a task
-            localStorage.setItem(`completedTasksCount_${user.uid}`, (currentCount + 1).toString());
+      if (willBeCompleted && !wasCompleted) {
+        // Incrementing when completing a task
+        localStorage.setItem(`completedTasksCount_${user.uid}`, (currentCount + 1).toString());
 
-            // Track time-based achievements (Early Bird / Night Owl)
-            const timeOfDay = getTimeOfDay();
-            updateTimeBasedAchievements(user.uid, timeOfDay);
+        // Track time-based achievements (Early Bird / Night Owl)
+        const timeOfDay = getTimeOfDay();
+        updateTimeBasedAchievements(user.uid, timeOfDay);
 
-            // Track daily task completion (Speed Demon)
-            updateDailyTaskCount(user.uid, true);
-          } else if (!willBeCompleted && wasCompleted) {
-            // Decrementing when uncompleting a task
-            const newCount = Math.max(0, currentCount - 1); // Prevent negative counts
-            localStorage.setItem(`completedTasksCount_${user.uid}`, newCount.toString());
+        // Track daily task completion (Speed Demon)
+        updateDailyTaskCount(user.uid, true);
+      } else if (!willBeCompleted && wasCompleted) {
+        // Decrementing when uncompleting a task
+        const newCount = Math.max(0, currentCount - 1); // Prevent negative counts
+        localStorage.setItem(`completedTasksCount_${user.uid}`, newCount.toString());
 
-            // Decrement daily task count
-            updateDailyTaskCount(user.uid, false);
-          }
-
-          // Trigger achievement check after a short delay
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('checkAchievements'));
-          }, 100);
-        } catch (error) {
-          console.error('Failed to update completed tasks count:', error);
-        }
-      } else {
-        console.warn('⚠️ No user found, cannot track task completion');
+        // Decrement daily task count
+        updateDailyTaskCount(user.uid, false);
       }
 
-      return prev.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      );
-    });
+      // Trigger achievement check after a short delay
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('checkAchievements'));
+      }, 100);
+
+      // Update task in Firestore
+      const taskService = new FirestoreService<Task>(user.uid, 'tasks');
+      await taskService.updateDocument(id, { completed: !task.completed });
+    } catch (error) {
+      console.error('Failed to toggle task:', error);
+      toast.error('Failed to update task. Please try again.');
+    }
   };
+
 
   return (
     <TaskContext.Provider value={{

@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { FirestoreService } from '../services/firestoreService';
+import toast from 'react-hot-toast';
 
 export interface TimetableClass {
     id?: string;
@@ -12,87 +15,93 @@ export interface TimetableClass {
 
 interface TimetableContextType {
     classes: TimetableClass[];
-    addClass: (classData: TimetableClass) => void;
-    deleteClass: (id: string) => void;
-    updateClass: (id: string, updates: Partial<TimetableClass>) => void;
+    addClass: (classData: TimetableClass) => Promise<void>;
+    deleteClass: (id: string) => Promise<void>;
+    updateClass: (id: string, updates: Partial<TimetableClass>) => Promise<void>;
     getTodayClasses: () => TimetableClass[];
 }
 
 const TimetableContext = createContext<TimetableContextType | undefined>(undefined);
 
 export function TimetableProvider({ children }: { children: React.ReactNode }) {
+    const { user } = useAuth();
     const [classes, setClasses] = useState<TimetableClass[]>([]);
 
-    // Load classes from localStorage on mount
+    // Load classes from Firestore with real-time sync
     useEffect(() => {
-        const savedClasses = localStorage.getItem('edunize-timetable');
-        if (savedClasses) {
-            try {
-                const parsed = JSON.parse(savedClasses);
-                // Validate data structure
-                if (Array.isArray(parsed) && parsed.every(cls =>
-                    cls.day !== undefined && cls.time && cls.subject
-                )) {
-                    // Ensure all classes have IDs (migration for old data)
-                    const classesWithIds = parsed.map((cls: TimetableClass, index: number) => ({
-                        ...cls,
-                        id: cls.id || `${Date.now()}-${index}`
-                    }));
-                    setClasses(classesWithIds);
-                } else {
-                    if (import.meta.env.DEV) {
-                        console.error('Invalid timetable data structure');
-                    }
-                    setClasses([]);
-                }
-            } catch (error) {
-                if (import.meta.env.DEV) {
-                    console.error('Error loading timetable:', error);
-                }
-                setClasses([]);
-            }
+        if (!user) {
+            setClasses([]);
+            return;
         }
-    }, []);
 
-    // Save classes to localStorage whenever they change
-    useEffect(() => {
-        if (classes.length > 0) {
-            try {
-                localStorage.setItem('edunize-timetable', JSON.stringify(classes));
-            } catch (error) {
-                if (import.meta.env.DEV) {
-                    console.error('Failed to save timetable to localStorage:', error);
-                }
-                if (error instanceof DOMException && (
-                    error.name === 'QuotaExceededError' ||
-                    error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-                )) {
-                    alert('Storage quota exceeded. Please delete some old classes to free up space.');
-                }
+        const timetableService = new FirestoreService<TimetableClass>(user.uid, 'timetable');
+
+        // Subscribe to real-time timetable updates
+        const unsubscribe = timetableService.subscribeToCollection(
+            (firestoreClasses) => {
+                setClasses(firestoreClasses);
+            },
+            (error) => {
+                console.error('Error loading timetable:', error);
+                toast.error('Failed to load timetable. Please check your connection.');
             }
-        } else {
-            // Clear localStorage if no classes remain
-            localStorage.removeItem('edunize-timetable');
-        }
-    }, [classes]);
+        );
 
-    const addClass = (classData: TimetableClass) => {
-        const newClass: TimetableClass = {
-            ...classData,
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        return () => {
+            unsubscribe();
         };
-        setClasses(prev => [...prev, newClass]);
+    }, [user]);
+
+
+    const addClass = async (classData: TimetableClass) => {
+        if (!user) {
+            toast.error('You must be logged in to add classes');
+            return;
+        }
+
+        try {
+            const timetableService = new FirestoreService<TimetableClass>(user.uid, 'timetable');
+            const newClass: TimetableClass = {
+                ...classData,
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            };
+            await timetableService.setDocument(newClass.id!, newClass);
+        } catch (error) {
+            console.error('Error adding class:', error);
+            toast.error('Failed to add class. Please try again.');
+        }
     };
 
-    const deleteClass = (id: string) => {
-        setClasses(prev => prev.filter(cls => cls.id !== id));
+    const deleteClass = async (id: string) => {
+        if (!user) {
+            toast.error('You must be logged in to delete classes');
+            return;
+        }
+
+        try {
+            const timetableService = new FirestoreService<TimetableClass>(user.uid, 'timetable');
+            await timetableService.deleteDocument(id);
+        } catch (error) {
+            console.error('Error deleting class:', error);
+            toast.error('Failed to delete class. Please try again.');
+        }
     };
 
-    const updateClass = (id: string, updates: Partial<TimetableClass>) => {
-        setClasses(prev => prev.map(cls =>
-            cls.id === id ? { ...cls, ...updates } : cls
-        ));
+    const updateClass = async (id: string, updates: Partial<TimetableClass>) => {
+        if (!user) {
+            toast.error('You must be logged in to update classes');
+            return;
+        }
+
+        try {
+            const timetableService = new FirestoreService<TimetableClass>(user.uid, 'timetable');
+            await timetableService.updateDocument(id, updates);
+        } catch (error) {
+            console.error('Error updating class:', error);
+            toast.error('Failed to update class. Please try again.');
+        }
     };
+
 
     const getTodayClasses = () => {
         const today = new Date().getDay();

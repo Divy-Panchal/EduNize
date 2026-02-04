@@ -16,6 +16,7 @@ import { auth } from '../firebaseConfig';
 import toast from 'react-hot-toast';
 import { logger } from '../utils/logger';
 import { RateLimiter } from '../utils/rateLimiter';
+import { migrateLocalStorageToFirestore, isMigrationComplete, markMigrationComplete } from '../utils/migrateToFirestore';
 
 interface AuthContextType {
   user: User | null;
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         const storedUserId = localStorage.getItem('currentUserId');
@@ -70,6 +71,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearUserData();
         }
         localStorage.setItem('currentUserId', currentUser.uid);
+
+        // Auto-migrate localStorage data to Firestore on first login
+        // TEMPORARILY DISABLED - Uncomment after configuring Firebase Security Rules
+        /*
+        if (!isMigrationComplete(currentUser.uid)) {
+          console.log('🔄 First login detected, starting data migration...');
+          const success = await migrateLocalStorageToFirestore(currentUser.uid);
+          if (success) {
+            markMigrationComplete(currentUser.uid);
+            console.log('✅ Data migration completed successfully');
+          } else {
+            console.warn('⚠️ Data migration failed, will retry on next login');
+          }
+        }
+        */
       }
       setLoading(false);
     });

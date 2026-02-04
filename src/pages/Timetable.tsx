@@ -8,9 +8,9 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, startOfMonth, endOfMo
 import { AddTaskModal } from '../components/AddTaskModal';
 
 export function Timetable() {
-  const { theme, themeConfig } = useTheme();
+  const { themeConfig } = useTheme();
   const { classes, addClass, deleteClass } = useTimetable();
-  const { tasks, addTask } = useTask();
+  const { tasks } = useTask();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -73,12 +73,9 @@ export function Timetable() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            console.log('Button clicked! View mode:', viewMode);
             if (viewMode === 'month') {
-              console.log('Opening Add Task modal');
               setShowAddTaskModal(true);
             } else {
-              console.log('Opening Add Class modal');
               setShowAddModal(true);
             }
           }}
@@ -287,16 +284,8 @@ export function Timetable() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('Remove button clicked!');
-                      console.log('Class item:', classItem);
-                      console.log('Class ID:', classItem.id);
-                      console.log('All classes:', classes);
-
                       if (classItem.id) {
-                        console.log('Calling deleteClass with ID:', classItem.id);
                         deleteClass(classItem.id);
-                      } else {
-                        console.error('No ID found for class:', classItem);
                       }
                     }}
                     className="relative z-10 p-1.5 bg-red-500 hover:bg-red-600 rounded-full transition-colors duration-200 flex-shrink-0"
