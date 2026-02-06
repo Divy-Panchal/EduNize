@@ -27,6 +27,9 @@ export interface Message {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    fileUri?: string;
+    fileName?: string;
+    fileType?: string;
 }
 
 export class GeminiService {
@@ -103,6 +106,93 @@ export class GeminiService {
         } catch (error) {
             console.error('Error streaming message from Gemini:', error);
             throw new Error('Failed to stream response from EduAI. Please try again.');
+        }
+    }
+
+    /**
+     * Upload a file to Gemini File API
+     */
+    async uploadFile(file: File): Promise<{ uri: string; mimeType: string }> {
+        try {
+            if (!API_KEY) {
+                throw new Error('Gemini API key is not configured');
+            }
+
+            // Convert file to base64
+            const fileData = await this.fileToGenerativePart(file);
+
+            // For now, we'll use inline data approach since File API requires server-side implementation
+            // Store file data for use in next message
+            return {
+                uri: fileData.inlineData.data,
+                mimeType: fileData.inlineData.mimeType
+            };
+        } catch (error) {
+            console.error('Error uploading file to Gemini:', error);
+            throw new Error('Failed to upload file. Please try again.');
+        }
+    }
+
+    /**
+     * Convert file to Gemini-compatible format
+     */
+    private async fileToGenerativePart(file: File): Promise<{ inlineData: { data: string; mimeType: string } }> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64Data = (reader.result as string).split(',')[1];
+                resolve({
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: file.type
+                    }
+                });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /**
+     * Send a message with file context
+     */
+    async sendMessageWithFile(message: string, file: File): Promise<string> {
+        try {
+            if (!API_KEY) {
+                throw new Error('Gemini API key is not configured');
+            }
+
+            // Convert file to generative part
+            const filePart = await this.fileToGenerativePart(file);
+
+            // Add system context to the message
+            const contextualMessage = `${SYSTEM_INSTRUCTION}\n\nUser has uploaded a file: ${file.name}\n\nUser: ${message}\n\nEduAI:`;
+
+            // Send message with file
+            const result = await this.model.generateContent([
+                contextualMessage,
+                filePart
+            ]);
+
+            const response = await result.response;
+            return response.text();
+        } catch (error) {
+            console.error('Error sending message with file to Gemini:', error);
+
+            if (error instanceof Error) {
+                if (error.message.includes('API key') || error.message.includes('API_KEY_INVALID')) {
+                    throw new Error('Invalid API key. Please check your Gemini API configuration.');
+                }
+                if (error.message.includes('quota') || error.message.includes('RESOURCE_EXHAUSTED')) {
+                    throw new Error('API quota exceeded. Please try again later.');
+                }
+                if (error.message.includes('fetch failed') || error.message.includes('Failed to fetch')) {
+                    throw new Error('Unable to connect to Gemini API. Please check your internet connection.');
+                }
+                throw new Error(`Gemini API Error: ${error.message}`);
+            }
+
+            throw new Error('Failed to process file with EduAI. Please try again.');
         }
     }
 

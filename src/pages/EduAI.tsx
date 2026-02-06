@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, RotateCcw, Loader2, History, Menu } from 'lucide-react';
+import { Send, RotateCcw, Loader2, History, Menu, Paperclip, X, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useChatHistory } from '../context/ChatHistoryContext';
 import { geminiService, Message } from '../services/geminiService';
+import { validateFile, formatFileSize } from '../types/file';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { HistorySidebar } from '../components/ChatHistory/HistorySidebar';
@@ -51,8 +52,11 @@ export function EduAI() {
     const [isTyping, setIsTyping] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [isUploadingFile, setIsUploadingFile] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Handle responsive sidebar
     useEffect(() => {
@@ -95,6 +99,10 @@ export function EduAI() {
             role: 'user',
             content: input.trim(),
             timestamp: new Date(),
+            ...(uploadedFile && {
+                fileName: uploadedFile.name,
+                fileType: uploadedFile.type
+            })
         };
 
         setMessages((prev) => [...prev, userMessage]);
@@ -111,7 +119,16 @@ export function EduAI() {
         }
 
         try {
-            const response = await geminiService.sendMessage(userMessage.content);
+            let response: string;
+
+            // Send with file if one is uploaded
+            if (uploadedFile) {
+                response = await geminiService.sendMessageWithFile(userMessage.content, uploadedFile);
+                // Clear uploaded file after sending
+                setUploadedFile(null);
+            } else {
+                response = await geminiService.sendMessage(userMessage.content);
+            }
 
             const aiMessage: Message = {
                 id: uuidv4(),
@@ -131,6 +148,45 @@ export function EduAI() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+            toast.error(validation.error || 'Invalid file');
+            return;
+        }
+
+        setIsUploadingFile(true);
+        try {
+            // Just store the file, we'll upload it when sending the message
+            setUploadedFile(file);
+            toast.success(`File "${file.name}" ready to upload`);
+        } catch (error) {
+            toast.error('Failed to prepare file');
+        } finally {
+            setIsUploadingFile(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setUploadedFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+        toast.success('File removed');
+    };
+
+    const handleFileButtonClick = () => {
+        fileInputRef.current?.click();
     };
 
     const handlePromptClick = (promptText: string) => {
@@ -156,6 +212,7 @@ export function EduAI() {
     const handleReset = () => {
         clearCurrentConversation();
         setMessages([]);
+        setUploadedFile(null);
         geminiService.resetChat();
         toast.success('Chat reset successfully');
     };
@@ -163,6 +220,7 @@ export function EduAI() {
     const handleNewChat = () => {
         createNewConversation();
         setMessages([]);
+        setUploadedFile(null);
         geminiService.resetChat();
     };
 
@@ -336,9 +394,18 @@ export function EduAI() {
                                                     </div>
                                                 )}
                                                 {message.role === 'user' ? (
-                                                    <p className="text-sm md:text-base whitespace-pre-wrap text-white">
-                                                        {message.content}
-                                                    </p>
+                                                    <>
+                                                        {/* Show file attachment if present */}
+                                                        {message.fileName && (
+                                                            <div className="mb-2 flex items-center gap-2 text-white/90 text-xs bg-white/10 rounded-lg p-2">
+                                                                <FileText className="w-3 h-3" />
+                                                                <span className="truncate">{message.fileName}</span>
+                                                            </div>
+                                                        )}
+                                                        <p className="text-sm md:text-base whitespace-pre-wrap text-white">
+                                                            {message.content}
+                                                        </p>
+                                                    </>
                                                 ) : (
                                                     <div className={`text-sm md:text-base prose prose-sm max-w-none ${theme === 'dark' ? 'prose-invert' : ''
                                                         }`}>
@@ -408,6 +475,47 @@ export function EduAI() {
 
                     {/* Input Area */}
                     <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                        {/* File Preview */}
+                        {uploadedFile && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className={`mb-3 flex items-center gap-2 p-3 rounded-lg ${theme === 'dark'
+                                    ? 'bg-gray-800 border border-gray-700'
+                                    : 'bg-gray-100 border border-gray-200'
+                                    }`}
+                            >
+                                <FileText className="w-4 h-4 text-blue-500" />
+                                <div className="flex-1 min-w-0">
+                                    <p className={`text-sm font-medium truncate ${themeConfig.text}`}>
+                                        {uploadedFile.name}
+                                    </p>
+                                    <p className={`text-xs ${themeConfig.textSecondary}`}>
+                                        {formatFileSize(uploadedFile.size)}
+                                    </p>
+                                </div>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleRemoveFile}
+                                    className="p-1 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
+                                    title="Remove file"
+                                >
+                                    <X className="w-4 h-4" />
+                                </motion.button>
+                            </motion.div>
+                        )}
+
+                        {/* Hidden file input */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.txt,.md"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+
                         <div className="flex gap-2 items-end">
                             <div className="flex-1 relative">
                                 <textarea
@@ -425,6 +533,23 @@ export function EduAI() {
                                     style={{ maxHeight: '150px' }}
                                 />
                             </div>
+
+                            {/* File upload button */}
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleFileButtonClick}
+                                disabled={isLoading || isUploadingFile}
+                                className={`p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
+                                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                    }`}
+                                title="Upload document"
+                            >
+                                <Paperclip className="w-5 h-5" />
+                            </motion.button>
+
+                            {/* Send button */}
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
