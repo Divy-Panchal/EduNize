@@ -100,7 +100,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
         try {
             const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
-            await pomodoroService.updateDocument('settings', { durations: newDurations });
+            // Use setDocument instead of updateDocument to create the document if it doesn't exist
+            await pomodoroService.setDocument('settings', { durations: newDurations });
         } catch (error) {
             console.error('Error saving Pomodoro durations:', error);
             toast.error('Failed to save timer settings. Please try again.');
@@ -121,7 +122,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         const saveSessionsDebounced = setTimeout(async () => {
             try {
                 const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
-                await pomodoroService.updateDocument('settings', { sessions });
+                await pomodoroService.setDocument('settings', { sessions });
             } catch (error) {
                 console.error('Error saving Pomodoro sessions:', error);
             }
@@ -137,7 +138,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         const saveTotalMinutesDebounced = setTimeout(async () => {
             try {
                 const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
-                await pomodoroService.updateDocument('settings', { totalMinutes });
+                await pomodoroService.setDocument('settings', { totalMinutes });
             } catch (error) {
                 console.error('Error saving Pomodoro total minutes:', error);
             }
