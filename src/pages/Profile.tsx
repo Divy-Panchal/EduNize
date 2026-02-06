@@ -753,7 +753,7 @@ export function Profile() {
                         />
                     </div>
                     <div>
-                        <label className="text-sm text-gray-600 flex items-center gap-2 mb-2">
+                        <label className={`text-sm ${themeConfig.textSecondary} flex items-center gap-2 mb-2`}>
                             <Phone size={16} /> Phone
                         </label>
                         <input
