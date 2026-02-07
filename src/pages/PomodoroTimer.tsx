@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
-import { Play, Pause, RotateCcw, Coffee, BookOpen, VolumeX, TrendingUp, Target, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, BookOpen, VolumeX, TrendingUp, Target, Clock, Edit3 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { usePomodoro } from '../context/PomodoroContext';
 
@@ -52,6 +52,10 @@ export function PomodoroTimer() {
   const controls = useAnimation();
   const [radius, setRadius] = useState(140);
   const isDragging = useRef(false);
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [editMinutes, setEditMinutes] = useState('');
+  const [editSeconds, setEditSeconds] = useState('');
+  const [isHoveringTimer, setIsHoveringTimer] = useState(false);
 
   // Handle window resize
   useEffect(() => {
@@ -99,6 +103,43 @@ export function PomodoroTimer() {
     isDragging.current = false;
     setDurations({ ...durations, [mode]: timeLeft });
   }, [isActive, mode, timeLeft, durations, setDurations]);
+
+  // Manual time edit handlers
+  const handleOpenEdit = () => {
+    if (isActive || isAlarmPlaying) return;
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    setEditMinutes(String(mins));
+    setEditSeconds(String(secs));
+    setIsEditingTime(true);
+  };
+
+  const handleSaveEdit = () => {
+    const mins = Math.max(0, Math.min(60, parseInt(editMinutes) || 0));
+    const secs = Math.max(0, Math.min(59, parseInt(editSeconds) || 0));
+    const totalSeconds = mins * 60 + secs;
+
+    // Ensure at least 1 second
+    const finalTime = totalSeconds === 0 ? 1 : Math.min(totalSeconds, MAX_SECONDS);
+
+    setTimeLeft(finalTime);
+    setDurations({ ...durations, [mode]: finalTime });
+    setIsEditingTime(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingTime(false);
+    setEditMinutes('');
+    setEditSeconds('');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -341,6 +382,25 @@ export function PomodoroTimer() {
               />
             </motion.div>
 
+            {/* Edit Icon - always visible on mobile, hover on desktop */}
+            {!isActive && (
+              <motion.div
+                className={`absolute z-20 cursor-pointer left-1/2 -translate-x-1/2 ${isHoveringTimer ? 'opacity-100' : 'opacity-100 md:opacity-0'
+                  }`}
+                style={{ top: '72%' }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: isHoveringTimer ? 1 : 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                onClick={handleOpenEdit}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/20 dark:to-purple-400/20 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-blue-400/40 dark:border-blue-500/40">
+                  <Edit3 className={`w-6 h-6 ${getModeRingColor()}`} strokeWidth={2.5} />
+                </div>
+              </motion.div>
+            )}
+
             {/* Timer Display */}
             <div className="absolute flex flex-col items-center justify-center z-0">
               {isAlarmPlaying ? (
@@ -354,13 +414,18 @@ export function PomodoroTimer() {
                 </motion.button>
               ) : (
                 <>
-                  <div className={`flex items-baseline ${themeConfig.text}`}>
+                  <motion.div
+                    className={`flex items-baseline ${themeConfig.text} relative group`}
+                    onClick={handleOpenEdit}
+                    onMouseEnter={() => setIsHoveringTimer(true)}
+                    onMouseLeave={() => setIsHoveringTimer(false)}
+                  >
                     <AnimatedDigit digit={parseInt(minutesStr[0])} />
                     <AnimatedDigit digit={parseInt(minutesStr[1])} />
                     <span className="text-6xl md:text-8xl font-bold tracking-tight">:</span>
                     <AnimatedDigit digit={parseInt(secondsStr[0])} />
                     <AnimatedDigit digit={parseInt(secondsStr[1])} />
-                  </div>
+                  </motion.div>
                   <div className="flex items-center gap-2 mt-4">
                     {mode === 'work' ? (
                       <BookOpen className={`w-6 h-6 ${getModeRingColor()}`} />
@@ -431,6 +496,99 @@ export function PomodoroTimer() {
           />
         </motion.div>
       </div>
+
+      {/* Edit Time Modal */}
+      {isEditingTime && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={handleCancelEdit}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className={`${themeConfig.card} p-8 rounded-3xl shadow-2xl border dark:border-gray-700 max-w-md w-full`}
+          >
+            <div className="text-center mb-6">
+              <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${getModeColor()} mb-4`}>
+                <Clock className="w-8 h-8 text-white" />
+              </div>
+              <h2 className={`text-2xl font-bold ${themeConfig.text}`}>Set Timer</h2>
+              <p className={`text-sm ${themeConfig.textSecondary} mt-2`}>
+                Enter your desired time
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
+                    Minutes
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="60"
+                    value={editMinutes}
+                    onChange={(e) => setEditMinutes(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
+                      ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
+                      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
+                      } outline-none transition-all text-center text-2xl font-bold`}
+                    placeholder="00"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
+                    Seconds
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={editSeconds}
+                    onChange={(e) => setEditSeconds(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
+                      ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
+                      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
+                      } outline-none transition-all text-center text-2xl font-bold`}
+                    placeholder="00"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCancelEdit}
+                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${theme === 'dark'
+                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                    }`}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSaveEdit}
+                  className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-br ${getModeColor()} shadow-lg`}
+                >
+                  Save
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
