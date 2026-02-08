@@ -353,9 +353,9 @@ export function Profile() {
             // Early Bird - Update all levels
             const earlyBirdCount = getTimeBasedAchievementCount(user.uid, 'earlyBird');
             [
-                { id: 'early_bird_1', max: 5 },
-                { id: 'early_bird_2', max: 15 },
-                { id: 'early_bird_3', max: 30 }
+                { id: 'early_bird_1', max: 1 },
+                { id: 'early_bird_2', max: 5 },
+                { id: 'early_bird_3', max: 15 }
             ].forEach(({ id, max }) => {
                 const achievement = updated.find((a: any) => a.id === id);
                 if (achievement) {
@@ -374,9 +374,9 @@ export function Profile() {
             // Night Owl - Update all levels
             const nightOwlCount = getTimeBasedAchievementCount(user.uid, 'nightOwl');
             [
-                { id: 'night_owl_1', max: 5 },
-                { id: 'night_owl_2', max: 15 },
-                { id: 'night_owl_3', max: 30 }
+                { id: 'night_owl_1', max: 1 },
+                { id: 'night_owl_2', max: 5 },
+                { id: 'night_owl_3', max: 15 }
             ].forEach(({ id, max }) => {
                 const achievement = updated.find((a: any) => a.id === id);
                 if (achievement) {
