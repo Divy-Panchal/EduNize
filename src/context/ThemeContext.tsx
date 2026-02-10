@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 type Theme = 'default' | 'dark' | 'purple' | 'green';
 
@@ -68,31 +68,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const handleSetTheme = (newTheme: Theme) => {
+  // Memoize theme config to prevent unnecessary re-renders
+  const themeConfig = useMemo(() => themes[theme], [theme]);
+
+  const handleSetTheme = useCallback((newTheme: Theme) => {
     if (newTheme !== theme) {
       setTransitionTheme(newTheme);
       setIsTransitioning(true);
-      // Wait for the animation to cover the screen before changing the theme
+      // Faster transition - reduced from 600ms to 200ms
       setTimeout(() => {
         setTheme(newTheme);
         localStorage.setItem('eduorganize-theme', newTheme);
-      }, 600); // Animation point where the screen is covered
+      }, 200);
 
-      // Wait for the animation to complete before ending the transition state
+      // Faster completion - reduced from 1200ms to 400ms
       setTimeout(() => {
         setIsTransitioning(false);
-      }, 1200); // Total animation duration
+      }, 400);
     }
-  };
+  }, [theme]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    theme,
+    setTheme: handleSetTheme,
+    themeConfig,
+    isTransitioning,
+    transitionTheme,
+  }), [theme, handleSetTheme, themeConfig, isTransitioning, transitionTheme]);
 
   return (
-    <ThemeContext.Provider value={{
-      theme,
-      setTheme: handleSetTheme,
-      themeConfig: themes[theme],
-      isTransitioning,
-      transitionTheme,
-    }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

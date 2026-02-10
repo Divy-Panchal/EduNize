@@ -1,16 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BookOpen, CheckSquare, Timer, User, CalendarDays, TrendingUp, Sparkles } from 'lucide-react';
+import { Home, CheckSquare, User, CalendarDays, Sparkles } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const navigationItems = [
   { path: '/', icon: Home, label: 'Home' },
-  { path: '/subjects', icon: BookOpen, label: 'Subjects' },
   { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { path: '/timetable', icon: CalendarDays, label: 'Schedule' },
-  { path: '/grades', icon: TrendingUp, label: 'Grades' },
   { path: '/eduai', icon: Sparkles, label: 'EduAI' },
-  { path: '/pomodoro', icon: Timer, label: 'Focus' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -19,7 +16,7 @@ export function Navigation() {
   const { themeConfig } = useTheme();
 
   return (
-    <nav className="fixed bottom-3 sm:bottom-6 left-0 right-0 flex justify-center z-[9999] px-3 sm:px-4 md:px-6">
+    <nav className="fixed bottom-12 sm:bottom-6 left-0 right-0 flex justify-center z-[9999] px-3 sm:px-4 md:px-6 safe-area-bottom">
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

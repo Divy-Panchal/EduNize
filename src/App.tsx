@@ -19,6 +19,7 @@ import { DarkModeTransition } from './components/DarkModeTransition';
 import { Onboarding } from './components/Onboarding';
 import { ProfileSetup } from './components/ProfileSetup';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { FCMService } from './services/fcmService';
 
 // Lazy load pages for better initial performance
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -87,6 +88,24 @@ function AppContent() {
       }
     }
   }, [user, showOnboarding]);
+
+  // Initialize FCM when user logs in
+  useEffect(() => {
+    if (user && !showOnboarding && !showProfileSetup) {
+      FCMService.initialize().then(success => {
+        if (success) {
+          console.log('✅ FCM initialized successfully');
+        } else {
+          console.log('❌ FCM initialization failed');
+        }
+      });
+    }
+
+    return () => {
+      // Cleanup FCM listeners on unmount
+      FCMService.removeAllListeners();
+    };
+  }, [user, showOnboarding, showProfileSetup]);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('hasCompletedOnboarding', 'true');
@@ -179,7 +198,7 @@ function AppContent() {
       {!showOnboarding && !showProfileSetup && (
         <div className="md:flex-row">
           <Navigation />
-          <main className="flex-1 p-4 md:p-6 pb-28">
+          <main className="flex-1 p-4 md:p-6 pb-52 safe-area-top safe-area-bottom">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

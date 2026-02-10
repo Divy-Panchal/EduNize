@@ -334,10 +334,7 @@ export function PomodoroTimer() {
           <motion.div
             ref={circleRef}
             className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center select-none"
-            style={{ touchAction: 'none' }}
-            onPanStart={onPanStart}
-            onPan={handlePan}
-            onPanEnd={onPanEnd}
+            style={{ touchAction: 'pan-y' }}
           >
             {/* Background Circle */}
             <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${getModeColor()} opacity-10`} />
@@ -371,10 +368,20 @@ export function PomodoroTimer() {
 
             {/* Draggable Dot */}
             <motion.div
-              className="absolute z-10 w-10 h-10 pointer-events-none"
+              className="absolute z-10 w-10 h-10"
               animate={controls}
-              style={{ cursor: isActive ? 'default' : 'grab' }}
+              style={{
+                cursor: isActive ? 'default' : 'grab',
+                pointerEvents: isActive ? 'none' : 'auto'
+              }}
               whileTap={{ cursor: 'grabbing' }}
+              drag
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              dragElastic={0}
+              dragMomentum={false}
+              onDragStart={onPanStart}
+              onDrag={(_, info) => handlePan(_ as any, info)}
+              onDragEnd={onPanEnd}
             >
               <div
                 className={`w-full h-full bg-white dark:bg-gray-800 rounded-full border-4 ${getModeRingColor()} shadow-xl`}
@@ -503,7 +510,7 @@ export function PomodoroTimer() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={handleCancelEdit}
         >
           <motion.div

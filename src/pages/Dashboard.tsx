@@ -484,6 +484,7 @@ export function Dashboard() {
           </div>
         </motion.div>
       </div>
+      <div className="h-32 md:h-0"></div>
     </div>
   );
 }

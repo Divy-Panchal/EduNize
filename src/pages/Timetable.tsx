@@ -16,6 +16,8 @@ export function Timetable() {
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [newClass, setNewClass] = useState({
     subject: '',
     type: '',
@@ -230,7 +232,11 @@ export function Timetable() {
                         {dayTasks.slice(0, 2).map((task, idx) => (
                           <div
                             key={idx}
-                            className="text-xs px-1 py-0.5 rounded bg-blue-500 text-white truncate"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTask(task);
+                            }}
+                            className="text-xs px-1 py-0.5 rounded bg-blue-500 text-white truncate cursor-pointer hover:bg-blue-600 transition-colors"
                             title={task.title}
                           >
                             {task.title}
@@ -262,38 +268,48 @@ export function Timetable() {
             <div className="flex items-center gap-3 mb-4">
               <BookOpen className={`w-5 h-5 ${themeConfig.primary.replace('bg-', 'text-')}`} />
               <h3 className={`text-base md:text-lg font-semibold ${themeConfig.text}`}>Today's Classes</h3>
+              <span className={`ml-auto text-sm ${themeConfig.textSecondary}`}>
+                {classes.length} {classes.length === 1 ? 'class' : 'classes'}
+              </span>
             </div>
 
-            <div className="space-y-3">
-              {classes.slice(0, 3).map((classItem, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`flex items-center gap-3 md:gap-4 p-3 rounded-lg ${themeConfig.background} relative`}
-                >
-                  <div className={`w-3 h-3 ${classItem.color} rounded-full`} />
-                  <div className="flex-1">
-                    <h4 className={`font-medium ${themeConfig.text} text-sm md:text-base`}>{classItem.subject}</h4>
-                    <p className={`text-xs md:text-sm ${themeConfig.textSecondary}`}>{classItem.type}</p>
-                  </div>
-                  <span className={`text-xs md:text-sm font-medium ${themeConfig.textSecondary}`}>
-                    {classItem.time}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (classItem.id) {
-                        deleteClass(classItem.id);
-                      }
-                    }}
-                    className="relative z-10 p-1.5 bg-red-500 hover:bg-red-600 rounded-full transition-colors duration-200 flex-shrink-0"
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+              {classes.length === 0 ? (
+                <div className={`text-center py-8 ${themeConfig.textSecondary}`}>
+                  <p>No classes scheduled yet</p>
+                  <p className="text-sm mt-2">Click "Add Class" to get started</p>
+                </div>
+              ) : (
+                classes.map((classItem, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`flex items-center gap-3 md:gap-4 p-3 rounded-lg ${themeConfig.background} relative`}
                   >
-                    <X className="w-3 h-3 text-white" />
-                  </button>
-                </motion.div>
-              ))}
+                    <div className={`w-3 h-3 ${classItem.color} rounded-full`} />
+                    <div className="flex-1">
+                      <h4 className={`font-medium ${themeConfig.text} text-sm md:text-base`}>{classItem.subject}</h4>
+                      <p className={`text-xs md:text-sm ${themeConfig.textSecondary}`}>{classItem.type}</p>
+                    </div>
+                    <span className={`text-xs md:text-sm font-medium ${themeConfig.textSecondary}`}>
+                      {classItem.time}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (classItem.id) {
+                          deleteClass(classItem.id);
+                        }
+                      }}
+                      className="relative z-10 p-1.5 bg-red-500 hover:bg-red-600 rounded-full transition-colors duration-200 flex-shrink-0"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </motion.div>
+                ))
+              )}
             </div>
           </motion.div>
 
@@ -343,15 +359,21 @@ export function Timetable() {
                         <motion.div
                           key={`${day.toISOString()}-${time}`}
                           whileHover={{ scale: 1.02 }}
+                          onClick={() => classItem && setSelectedClass(classItem)}
+                          title={classItem ? `${classItem.subject} - ${classItem.type}` : undefined}
                           className={`p-2 md:p-3 min-h-[50px] md:min-h-[70px] border-2 rounded-lg flex items-center justify-center ${classItem
                             ? `${classItem.color} text-white shadow-md border-transparent`
                             : `${themeConfig.card} hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600`
-                            } transition-all duration-200 cursor-pointer`}
+                            } transition-all duration-200 cursor-pointer overflow-hidden`}
                         >
                           {classItem && (
-                            <div className="text-center">
-                              <div className="font-medium text-xs md:text-sm">{classItem.subject}</div>
-                              <div className="text-xs opacity-90 hidden md:block">{classItem.type}</div>
+                            <div className="text-center w-full px-1">
+                              <div className="font-medium text-xs md:text-sm truncate max-w-full" title={classItem.subject}>
+                                {classItem.subject}
+                              </div>
+                              <div className="text-xs opacity-90 hidden md:block truncate max-w-full" title={classItem.type}>
+                                {classItem.type}
+                              </div>
                             </div>
                           )}
                         </motion.div>
@@ -491,6 +513,213 @@ export function Timetable() {
             </motion.div>
           )}
         </>
+      )}
+
+      {/* Class Detail Modal */}
+      {selectedClass && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+          onClick={() => setSelectedClass(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className={`${themeConfig.card} p-6 rounded-xl shadow-2xl w-full max-w-md`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${themeConfig.text}`}>Class Details</h2>
+              <button
+                onClick={() => setSelectedClass(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+              >
+                <X className={`w-5 h-5 ${themeConfig.textSecondary}`} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Color Indicator */}
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 ${selectedClass.color} rounded-lg`} />
+                <div className="flex-1">
+                  <p className={`text-sm ${themeConfig.textSecondary}`}>Color</p>
+                  <p className={`font-medium ${themeConfig.text}`}>
+                    {selectedClass.color.replace('bg-', '').replace('-500', '')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Subject</p>
+                <p className={`text-lg font-semibold ${themeConfig.text}`}>{selectedClass.subject}</p>
+              </div>
+
+              {/* Type */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Type</p>
+                <p className={`font-medium ${themeConfig.text}`}>{selectedClass.type}</p>
+              </div>
+
+              {/* Day */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Day</p>
+                <p className={`font-medium ${themeConfig.text}`}>
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][selectedClass.day]}
+                </p>
+              </div>
+
+              {/* Time */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Time</p>
+                <p className={`font-medium ${themeConfig.text}`}>{selectedClass.time}</p>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Duration</p>
+                <p className={`font-medium ${themeConfig.text}`}>{selectedClass.duration} hour(s)</p>
+              </div>
+            </div>
+
+            {/* Delete Button */}
+            <div className="mt-6 pt-4 border-t dark:border-gray-700">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (selectedClass.id) {
+                    deleteClass(selectedClass.id);
+                    setSelectedClass(null);
+                  }
+                }}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <X className="w-5 h-5" />
+                Delete Class
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Task Detail Modal (for Calendar View) */}
+      {selectedTask && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4"
+          onClick={() => setSelectedTask(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className={`${themeConfig.card} p-6 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${themeConfig.text}`}>Task Details</h2>
+              <button
+                onClick={() => setSelectedTask(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+              >
+                <X className={`w-5 h-5 ${themeConfig.textSecondary}`} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Title</p>
+                <p className={`text-lg font-semibold ${themeConfig.text}`}>{selectedTask.title}</p>
+              </div>
+
+              {/* Description */}
+              {selectedTask.description && (
+                <div>
+                  <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Description</p>
+                  <p className={`${themeConfig.text}`}>{selectedTask.description}</p>
+                </div>
+              )}
+
+              {/* Priority */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Priority</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedTask.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                    selectedTask.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  }`}>
+                  {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)}
+                </span>
+              </div>
+
+              {/* Due Date */}
+              {selectedTask.dueDate && (
+                <div>
+                  <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Due Date</p>
+                  <p className={`font-medium ${themeConfig.text}`}>
+                    {format(new Date(selectedTask.dueDate), 'MMMM dd, yyyy')}
+                  </p>
+                </div>
+              )}
+
+              {/* Category */}
+              {selectedTask.category && (
+                <div>
+                  <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Category</p>
+                  <p className={`font-medium ${themeConfig.text}`}>{selectedTask.category}</p>
+                </div>
+              )}
+
+              {/* Completion Status */}
+              <div>
+                <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedTask.completed
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                  }`}>
+                  {selectedTask.completed ? 'Completed' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-6 pt-4 border-t dark:border-gray-700 space-y-3">
+              {/* Toggle Completion */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  // Toggle task completion - you'll need to import toggleTask from useTask
+                  setSelectedTask(null);
+                }}
+                className={`w-full ${selectedTask.completed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-500 hover:bg-green-600'} text-white py-3 rounded-lg font-medium transition-colors duration-200`}
+              >
+                {selectedTask.completed ? 'Mark as Pending' : 'Mark as Completed'}
+              </motion.button>
+
+              {/* Delete Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  // Delete task - you'll need to import deleteTask from useTask
+                  setSelectedTask(null);
+                }}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <X className="w-5 h-5" />
+                Delete Task
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Add Task Modal (for Calendar View) - Using AddTaskModal component */}

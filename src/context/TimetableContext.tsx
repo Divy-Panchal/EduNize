@@ -108,6 +108,12 @@ export function TimetableProvider({ children }: { children: React.ReactNode }) {
         // Convert Sunday (0) to 6, and shift Monday-Saturday to 0-5
         const dayIndex = today === 0 ? 6 : today - 1;
 
+        console.log('🔍 Debug getTodayClasses:');
+        console.log('  Today (JS):', today, '(0=Sun, 1=Mon, ..., 6=Sat)');
+        console.log('  Day Index:', dayIndex, '(0=Mon, 1=Tue, ..., 6=Sun)');
+        console.log('  All classes:', classes);
+        console.log('  Classes for today:', classes.filter(cls => cls.day === dayIndex));
+
         return classes
             .filter(cls => cls.day === dayIndex)
             .sort((a, b) => a.time.localeCompare(b.time));

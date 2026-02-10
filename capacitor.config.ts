@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.app',
-  appName: 'Vite React Typescript Starter',
+  appId: 'com.edunize.app',
+  appName: 'EduNize',
   webDir: 'dist'
 };
 

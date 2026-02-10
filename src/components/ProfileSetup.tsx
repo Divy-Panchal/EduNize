@@ -41,9 +41,9 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
     const handleSkip = () => {
         // Pass minimal data when skipping
         onComplete({
-            fullName: 'User',
-            class: 'Not specified',
-            institution: 'Not specified',
+            fullName: '',
+            class: '',
+            institution: '',
             phone: '',
         });
         toast.success('Profile setup skipped. You can update your profile anytime!');

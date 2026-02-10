@@ -14,7 +14,7 @@ import { User } from 'firebase/auth';
 
 // User data structure (without skills and interests)
 const initialUserData = {
-    fullName: 'Student',
+    fullName: '',
     class: '',
     institution: '', // Top-level institution field
     phone: '',       // Top-level phone field
@@ -24,12 +24,12 @@ const initialUserData = {
     gender: '',
     profilePhoto: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23e0e0e0"/%3E%3Ccircle cx="50" cy="40" r="18" fill="%23999"/%3E%3Cpath d="M 20 85 Q 20 60 50 60 Q 80 60 80 85 Z" fill="%23999"/%3E%3C/svg%3E',
     education: {
-        institution: 'University of Innovation',
-        grade: '3rd Year',
+        institution: '',
+        grade: '',
     },
     contact: {
-        email: 'alex.doe@example.com',
-        phone: '+1 234 567 8900',
+        email: '',
+        phone: '',
     },
     bio: '',
     achievements: [],
@@ -78,20 +78,20 @@ const getStoredUserData = (user: User | null) => {
 // Function to calculate profile completeness percentage
 const calculateProfileCompleteness = (userData: typeof initialUserData): number => {
     const fields = [
-        // Check if full name is filled and not default
-        !!(userData.fullName && userData.fullName.trim() !== '' && userData.fullName !== 'Student'),
+        // Check if full name is filled
+        !!(userData.fullName && userData.fullName.trim() !== ''),
 
         // Check if email is filled (usually auto-filled from Firebase)
-        !!(userData.contact?.email && userData.contact.email.trim() !== '' && userData.contact.email !== 'alex.doe@example.com'),
+        !!(userData.contact?.email && userData.contact.email.trim() !== ''),
 
         // Check if phone is filled
-        !!(userData.contact?.phone && userData.contact.phone.trim() !== '' && userData.contact.phone !== '+1 234 567 8900'),
+        !!(userData.contact?.phone && userData.contact.phone.trim() !== ''),
 
         // Check if institution is filled
-        !!(userData.education?.institution && userData.education.institution.trim() !== '' && userData.education.institution !== 'University of Innovation'),
+        !!(userData.education?.institution && userData.education.institution.trim() !== ''),
 
         // Check if grade is filled
-        !!(userData.education?.grade && userData.education.grade.trim() !== '' && userData.education.grade !== '3rd Year'),
+        !!(userData.education?.grade && userData.education.grade.trim() !== ''),
 
         // Check if bio is filled
         !!(userData.bio && userData.bio.trim() !== ''),
@@ -675,7 +675,7 @@ export function Profile() {
                                         value={userData.education.institution}
                                         onChange={handleInputChange}
                                         disabled={!isEditing}
-                                        placeholder="Enter school or college name"
+                                        placeholder="Enter School/College name"
                                         className={`font-semibold w-full bg-transparent ${themeConfig.text} ${isEditing ? 'border-b-2 border-blue-500' : ''}`}
                                     />
                                     <p className={`text-sm mt-2 ${themeConfig.textSecondary}`}>Class/College Semester:</p>
@@ -685,7 +685,7 @@ export function Profile() {
                                         value={userData.education.grade}
                                         onChange={handleInputChange}
                                         disabled={!isEditing}
-                                        placeholder="Enter class or college semester"
+                                        placeholder="Enter your class/Semester"
                                         className={`font-semibold w-full bg-transparent ${themeConfig.text} ${isEditing ? 'border-b-2 border-blue-500' : ''}`}
                                     />
                                 </div>
