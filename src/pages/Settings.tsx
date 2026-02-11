@@ -113,7 +113,7 @@ export function Settings() {
   ];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-40">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -202,8 +202,8 @@ export function Settings() {
             whileTap={{ scale: 0.98 }}
             onClick={() => setGradingSystem('college')}
             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${gradingSystem === 'college'
-                ? `border-blue-500 dark:border-blue-400 ${theme === 'dark' ? 'bg-blue-900/50' : 'bg-blue-50'}`
-                : `border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`
+              ? `border-blue-500 dark:border-blue-400 ${theme === 'dark' ? 'bg-blue-900/50' : 'bg-blue-50'}`
+              : `border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`
               }`}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -229,8 +229,8 @@ export function Settings() {
             whileTap={{ scale: 0.98 }}
             onClick={() => setGradingSystem('school')}
             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${gradingSystem === 'school'
-                ? `border-teal-500 dark:border-teal-400 ${theme === 'dark' ? 'bg-teal-900/20' : 'bg-teal-50'}`
-                : `border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`
+              ? `border-teal-500 dark:border-teal-400 ${theme === 'dark' ? 'bg-teal-900/20' : 'bg-teal-50'}`
+              : `border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`
               }`}
           >
             <div className="flex items-center gap-3 mb-2">

@@ -26,6 +26,17 @@ export class FCMService {
             // Register with FCM
             await PushNotifications.register();
 
+            // Create a high-importance channel for "WhatsApp-like" behavior
+            await PushNotifications.createChannel({
+                id: 'fcm_default_channel',
+                name: 'Pop-up Notifications',
+                description: 'Show notifications with sound and pop-up',
+                importance: 5, // High importance (heads up)
+                visibility: 1, // Public
+                sound: 'default',
+                vibration: true,
+            });
+
             // Listen for registration success
             await PushNotifications.addListener('registration', (token: Token) => {
                 console.log('FCM Token:', token.value);

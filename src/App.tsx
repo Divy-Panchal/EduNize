@@ -1,9 +1,11 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useState, useEffect, lazy, Suspense, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { App as CapacitorApp } from '@capacitor/app';
 
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
+import { ExitConfirmationModal } from './components/ExitConfirmationModal';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext';
 import { SubjectProvider } from './context/SubjectContext';
@@ -20,6 +22,7 @@ import { Onboarding } from './components/Onboarding';
 import { ProfileSetup } from './components/ProfileSetup';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FCMService } from './services/fcmService';
+import { LocalNotificationService } from './services/localNotificationService';
 
 // Lazy load pages for better initial performance
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -68,8 +71,50 @@ function AppContent() {
   const { user, loading } = useAuth();
   const { themeConfig, isTransitioning, transitionTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  // Use refs to track state inside the event listener without re-binding
+  const locationRef = useRef(location);
+  const modalRef = useRef(showExitModal);
+
+  useEffect(() => {
+    locationRef.current = location;
+    modalRef.current = showExitModal;
+  }, [location, showExitModal]);
+
+  useEffect(() => {
+    const handleBackButton = async () => {
+      const currentPath = locationRef.current.pathname;
+      const isModalOpen = modalRef.current;
+
+      if (currentPath === '/' || currentPath.startsWith('/dashboard')) {
+        if (isModalOpen) {
+          // Close modal if open
+          setShowExitModal(false);
+        } else {
+          // Open modal if closed
+          setShowExitModal(true);
+        }
+      } else {
+        // Navigate to dashboard (root) if on any other page
+        navigate('/');
+      }
+    };
+
+    const setupListener = async () => {
+      const backListener = await CapacitorApp.addListener('backButton', handleBackButton);
+      return backListener;
+    };
+
+    const listenerPromise = setupListener();
+
+    return () => {
+      listenerPromise.then(handler => handler.remove());
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
@@ -92,6 +137,9 @@ function AppContent() {
   // Initialize FCM when user logs in
   useEffect(() => {
     if (user && !showOnboarding && !showProfileSetup) {
+      // Request local notification permissions
+      LocalNotificationService.requestPermissions();
+
       FCMService.initialize().then(success => {
         if (success) {
           console.log('✅ FCM initialized successfully');
@@ -227,6 +275,11 @@ function AppContent() {
           </main>
         </div>
       )}
+      <ExitConfirmationModal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        onConfirm={() => CapacitorApp.exitApp()}
+      />
     </div>
   );
 }

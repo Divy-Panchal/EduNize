@@ -5,6 +5,9 @@ import { ArrowLeft, Plus, BookOpen, Calendar, X, Link as LinkIcon, Video, File, 
 import { useTheme } from '../context/ThemeContext';
 import { useSubject } from '../context/SubjectContext';
 import toast from 'react-hot-toast';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 
 export function SubjectDetail() {
     const { id } = useParams<{ id: string }>();
@@ -230,6 +233,51 @@ export function SubjectDetail() {
         }
     };
 
+    const handleOpenFile = async (fileData: string, fileName: string, mimeType?: string) => {
+        if (!fileData || !fileName) return;
+
+        // Native Platform Logic
+        if (Capacitor.isNativePlatform()) {
+            try {
+                // Remove data:image/png;base64, prefix if present
+                const base64Data = fileData.split(',')[1] || fileData;
+
+                // Determine mime type if not provided
+                let finalMimeType = mimeType;
+                if (!finalMimeType) {
+                    const ext = fileName.split('.').pop()?.toLowerCase();
+                    if (ext === 'pdf') finalMimeType = 'application/pdf';
+                    else if (['jpg', 'jpeg', 'png'].includes(ext || '')) finalMimeType = `image/${ext}`;
+                    else finalMimeType = 'application/octet-stream'; // Default
+                }
+
+                // Write file to cache directory
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache,
+                });
+
+                // Open file
+                await FileOpener.open({
+                    filePath: result.uri,
+                    contentType: finalMimeType,
+                });
+
+            } catch (error) {
+                console.error('Error opening file natively:', error);
+                toast.error('Could not open file. Please try downloading it.');
+            }
+        }
+        // Web Logic
+        else {
+            const blobUrl = createBlobUrl(fileData);
+            window.open(blobUrl, '_blank');
+            // Clean up blob URL after a delay
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        }
+    };
+
     return (
         <div className={`min-h-screen ${themeConfig.background} space-y-6 pb-20`}>
             {/* Header with Back Button */}
@@ -372,18 +420,13 @@ export function SubjectDetail() {
                                                     {getResourceIcon(resource.type)}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <h3 className={`font-bold ${themeConfig.text} mb-1`}>{resource.title}</h3>
+                                                    <h3 className={`font-bold ${themeConfig.text} mb-1 break-all`}>{resource.title}</h3>
                                                     {resource.type === 'file' && resource.fileData ? (
                                                         <div className="flex gap-2 mt-2">
                                                             {/* Show Open button only for viewable file types (PDF, images, text) */}
                                                             {isFileViewableInBrowser(resource.fileName || resource.title) && (
                                                                 <button
-                                                                    onClick={() => {
-                                                                        const blobUrl = createBlobUrl(resource.fileData!);
-                                                                        window.open(blobUrl, '_blank');
-                                                                        // Clean up blob URL after a delay to prevent memory leaks
-                                                                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                                                                    }}
+                                                                    onClick={() => handleOpenFile(resource.fileData!, resource.fileName || resource.title)}
                                                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors"
                                                                 >
                                                                     <Eye className="w-4 h-4" />
@@ -393,18 +436,36 @@ export function SubjectDetail() {
                                                             {/* Always show Download button for all file types */}
                                                             <button
                                                                 onClick={() => {
-                                                                    const blobUrl = createBlobUrl(resource.fileData!);
-                                                                    const link = document.createElement('a');
-                                                                    link.href = blobUrl;
-                                                                    link.download = resource.fileName || resource.title;
-                                                                    link.click();
-                                                                    // Clean up blob URL after download
-                                                                    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                                                                    if (Capacitor.isNativePlatform()) {
+                                                                        // Native Download
+                                                                        (async () => {
+                                                                            try {
+                                                                                const base64Data = resource.fileData!.split(',')[1] || resource.fileData!;
+                                                                                await Filesystem.writeFile({
+                                                                                    path: resource.fileName || resource.title,
+                                                                                    data: base64Data,
+                                                                                    directory: Directory.Documents,
+                                                                                });
+                                                                                toast.success('File saved to Documents folder');
+                                                                            } catch (error) {
+                                                                                console.error('Download error:', error);
+                                                                                toast.error('Failed to save file');
+                                                                            }
+                                                                        })();
+                                                                    } else {
+                                                                        // Web Download
+                                                                        const blobUrl = createBlobUrl(resource.fileData!);
+                                                                        const link = document.createElement('a');
+                                                                        link.href = blobUrl;
+                                                                        link.download = resource.fileName || resource.title;
+                                                                        link.click();
+                                                                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                                                                    }
                                                                 }}
                                                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition-colors"
                                                             >
                                                                 <Download className="w-4 h-4" />
-                                                                Download
+                                                                {Capacitor.isNativePlatform() ? 'Save' : 'Download'}
                                                             </button>
                                                         </div>
                                                     ) : (
@@ -414,13 +475,13 @@ export function SubjectDetail() {
                                                                 onClick={() => {
                                                                     window.open(resource.url, '_blank');
                                                                 }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors flex-shrink-0"
                                                             >
                                                                 <Eye className="w-4 h-4" />
                                                                 Open
                                                             </button>
                                                             {/* Show URL as secondary info */}
-                                                            <span className={`text-xs ${themeConfig.textSecondary} self-center truncate max-w-[200px]`}>
+                                                            <span className={`text-xs ${themeConfig.textSecondary} self-center break-all line-clamp-1`}>
                                                                 {resource.url}
                                                             </span>
                                                         </div>
@@ -452,154 +513,159 @@ export function SubjectDetail() {
                         </div>
                     </motion.button>
                 </motion.div>
-            </div>
+            </div >
 
 
 
             {/* Add Topic Modal */}
             <AnimatePresence>
-                {showTopicModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setShowTopicModal(false)}
-                    >
+                {
+                    showTopicModal && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className={`${themeConfig.card} rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'} `}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            onClick={() => setShowTopicModal(false)}
                         >
-                            <h2 className={`text-2xl font-bold ${themeConfig.text} mb-4`}>Add Topic</h2>
-                            <input
-                                type="text"
-                                value={topicName}
-                                onChange={(e) => setTopicName(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleAddTopic()}
-                                placeholder="Topic name"
-                                className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-4`}
-                                autoFocus
-                            />
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowTopicModal(false)}
-                                    className={`flex-1 px-4 py-3 rounded-xl font-semibold ${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAddTopic}
-                                    className="flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
-                                >
-                                    Add Topic
-                                </button>
-                            </div>
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className={`${themeConfig.card} rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'} `}
+                            >
+                                <h2 className={`text-2xl font-bold ${themeConfig.text} mb-4`}>Add Topic</h2>
+                                <input
+                                    type="text"
+                                    value={topicName}
+                                    onChange={(e) => setTopicName(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleAddTopic()}
+                                    placeholder="Topic name"
+                                    className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-4`}
+                                    autoFocus
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowTopicModal(false)}
+                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold ${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAddTopic}
+                                        className="flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                                    >
+                                        Add Topic
+                                    </button>
+                                </div>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )
+                }
+            </AnimatePresence >
 
             {/* Add Resource Modal */}
             <AnimatePresence>
-                {showResourceModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setShowResourceModal(false)}
-                    >
+                {
+                    showResourceModal && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className={`${themeConfig.card} rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'} `}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            onClick={() => setShowResourceModal(false)}
                         >
-                            <h2 className={`text-2xl font-bold ${themeConfig.text} mb-4`}>Add Resource</h2>
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className={`${themeConfig.card} rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'} `}
+                            >
+                                <h2 className={`text-2xl font-bold ${themeConfig.text} mb-4`}>Add Resource</h2>
 
-                            <div className="mb-4">
-                                <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>Type</label>
-                                <div className="flex gap-2">
-                                    {(['link', 'video', 'file'] as const).map((type) => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setResourceType(type)}
-                                            className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${resourceType === type
-                                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                                                : `${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'}`
-                                                } `}
-                                        >
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {resourceType === 'file' ? (
-                                <>
-                                    <input
-                                        type="text"
-                                        value={resourceTitle}
-                                        onChange={(e) => setResourceTitle(e.target.value)}
-                                        placeholder="Resource title (optional)"
-                                        className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                    />
-                                    <div className={`w-full px-4 py-3 rounded-xl border-2 border-dashed ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:border-blue-400 transition-all mb-3`}>
-                                        <input
-                                            type="file"
-                                            onChange={handleFileSelect}
-                                            className="w-full"
-                                            id="file-upload"
-                                        />
-                                        <label htmlFor="file-upload" className={`cursor-pointer ${themeConfig.text} `}>
-                                            {selectedFile ? `Selected: ${selectedFile.name} ` : 'Choose a file'}
-                                        </label>
+                                <div className="mb-4">
+                                    <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>Type</label>
+                                    <div className="flex gap-2">
+                                        {(['link', 'video', 'file'] as const).map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setResourceType(type)}
+                                                className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${resourceType === type
+                                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                                                    : `${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'}`
+                                                    } `}
+                                            >
+                                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                                            </button>
+                                        ))}
                                     </div>
-                                </>
-                            ) : (
-                                <>
-                                    <input
-                                        type="text"
-                                        value={resourceTitle}
-                                        onChange={(e) => setResourceTitle(e.target.value)}
-                                        placeholder="Resource title"
-                                        className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                        autoFocus
-                                    />
-                                    <input
-                                        type="text"
-                                        value={resourceUrl}
-                                        onChange={(e) => setResourceUrl(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleAddResource()}
-                                        placeholder="URL (e.g., https://example.com)"
-                                        className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                    />
-                                </>
-                            )}
+                                </div>
 
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowResourceModal(false)}
-                                    className={`flex-1 px-4 py-3 rounded-xl font-semibold ${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAddResource}
-                                    className="flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
-                                >
-                                    Add Resource
-                                </button>
-                            </div>
+                                {resourceType === 'file' ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            value={resourceTitle}
+                                            onChange={(e) => setResourceTitle(e.target.value)}
+                                            placeholder="Resource title (optional)"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
+                                        />
+                                        <div className={`w-full px-4 py-3 rounded-xl border-2 border-dashed ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:border-blue-400 transition-all mb-3`}>
+                                            <input
+                                                type="file"
+                                                onChange={handleFileSelect}
+                                                className="w-full"
+                                                id="file-upload"
+                                            />
+                                            <label htmlFor="file-upload" className={`cursor-pointer ${themeConfig.text} `}>
+                                                {selectedFile ? `Selected: ${selectedFile.name} ` : 'Choose a file'}
+                                            </label>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="text"
+                                            value={resourceTitle}
+                                            onChange={(e) => setResourceTitle(e.target.value)}
+                                            placeholder="Resource title"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
+                                            autoFocus
+                                        />
+                                        <input
+                                            type="text"
+                                            value={resourceUrl}
+                                            onChange={(e) => setResourceUrl(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleAddResource()}
+                                            placeholder="URL (e.g., https://example.com)"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
+                                        />
+                                    </>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowResourceModal(false)}
+                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold ${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAddResource}
+                                        disabled={isUploading}
+                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isUploading ? 'Adding...' : 'Add Resource'}
+                                    </button>
+                                </div>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                    )
+                }
+            </AnimatePresence >
+        </div >
     );
 }
 

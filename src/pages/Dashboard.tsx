@@ -165,7 +165,7 @@ export function Dashboard() {
       >
         <div>
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
-            Welcome back, {userData.fullName}! 👋
+            {userData.fullName ? `Welcome back, ${userData.fullName}! 👋` : 'Welcome back! 👋'}
           </h1>
           <p className={themeConfig.textSecondary}>
             Here's what's happening with your studies today

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import {
     Edit, Save, BookOpen, Award, Upload, X,
     Mail, Phone, User as UserIcon,
-    Eye, EyeOff, Settings
+    Eye, EyeOff, Settings, RotateCcw
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -574,7 +574,7 @@ export function Profile() {
 
 
     return (
-        <div className="space-y-6 pb-4 md:pb-28">
+        <div className="space-y-6 pb-24 md:pb-32">
             <motion.div
                 className="flex justify-between items-center"
                 initial={{ opacity: 0, y: -20 }}
@@ -617,6 +617,17 @@ export function Profile() {
                         >
                             {/* Front Side */}
                             <div className={`absolute w-full h-full p-6 rounded-2xl shadow-sm ${themeConfig.card} border dark:border-gray-700 [backface-visibility:hidden] flex flex-col items-center justify-center`}>
+                                {!isEditing && (
+                                    <div className="absolute top-4 right-4">
+                                        <motion.div
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${themeConfig.background} border dark:border-gray-600 shadow-sm text-xs font-medium ${themeConfig.textSecondary}`}
+                                            whileHover={{ scale: 1.05 }}
+                                        >
+                                            <RotateCcw size={14} />
+                                            Flip
+                                        </motion.div>
+                                    </div>
+                                )}
                                 <div className="relative">
                                     <img
                                         src={userData.profilePhoto}
@@ -906,6 +917,7 @@ export function Profile() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <div className="h-16"></div>
         </div>
     );
 }

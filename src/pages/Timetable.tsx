@@ -59,7 +59,7 @@ export function Timetable() {
     'bg-red-500', 'bg-indigo-500', 'bg-pink-500', 'bg-teal-500'
   ];
   return (
-    <div className="space-y-6 pb-20 md:pb-32">
+    <div className="space-y-6 pb-40">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -652,8 +652,8 @@ export function Timetable() {
               <div>
                 <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Priority</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedTask.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                    selectedTask.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                      'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  selectedTask.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   }`}>
                   {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)}
                 </span>
@@ -681,8 +681,8 @@ export function Timetable() {
               <div>
                 <p className={`text-sm ${themeConfig.textSecondary} mb-1`}>Status</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedTask.completed
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                   }`}>
                   {selectedTask.completed ? 'Completed' : 'Pending'}
                 </span>
@@ -727,6 +727,8 @@ export function Timetable() {
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
       />
+
+      <div className="h-16"></div>
     </div>
   );
 }

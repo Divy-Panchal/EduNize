@@ -118,7 +118,7 @@ export function Subjects() {
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-40">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

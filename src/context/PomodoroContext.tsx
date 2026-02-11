@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { useDailyStats } from './DailyStatsContext';
 import { getTimeOfDay, updateTimeBasedAchievements } from '../utils/achievementHelpers';
 import { FirestoreService } from '../services/firestoreService';
+import { LocalNotificationService } from '../services/localNotificationService';
 import toast from 'react-hot-toast';
 
 export type PomodoroMode = 'work' | 'short' | 'long';
@@ -272,8 +273,17 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     }, [isActive, timeLeft, mode, sessions, switchMode, playAlarm, durations.work, addStudyTime, incrementFocusSession, user]);
 
     const toggleTimer = () => {
-        setIsActive(!isActive);
-        if (isActive) stopAlarm();
+        const nextActive = !isActive;
+        setIsActive(nextActive);
+
+        if (nextActive) {
+            // Schedule local notification for completion
+            LocalNotificationService.scheduleFocusCompletion(timeLeft / 60);
+        } else {
+            stopAlarm();
+            // Cancel local notification if paused
+            LocalNotificationService.cancelFocusNotification();
+        }
     };
 
     const resetTimer = () => {

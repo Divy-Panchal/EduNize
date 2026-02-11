@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Image as ImageIcon, Trash2, Check } from 'lucide-react';
+import { Calendar, Image as ImageIcon, Trash2, Check } from 'lucide-react';
 import { Task } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
 import { format } from 'date-fns';
+import { ImagePreviewModal } from './ImagePreviewModal';
 
 interface TaskCardProps {
   task: Task;
@@ -31,13 +32,11 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
       whileHover={{ y: -5 }}
-      className={`${themeConfig.card} p-6 rounded-xl shadow-sm border ${
-        task.completed ? 'opacity-75' : ''
-      } ${
-        isOverdue 
-          ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' 
+      className={`${themeConfig.card} p-6 rounded-xl shadow-sm border ${task.completed ? 'opacity-75' : ''
+        } ${isOverdue
+          ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
           : 'border-gray-100 dark:border-gray-700'
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -53,11 +52,10 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onToggle(task.id)}
-            className={`p-2 rounded-lg ${
-              task.completed 
-                ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400' 
-                : 'bg-gray-100 text-gray-400 hover:bg-green-100 hover:text-green-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-green-900/50 dark:hover:text-green-400'
-            } transition-colors duration-200`}
+            className={`p-2 rounded-lg ${task.completed
+              ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'
+              : 'bg-gray-100 text-gray-400 hover:bg-green-100 hover:text-green-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-green-900/50 dark:hover:text-green-400'
+              } transition-colors duration-200`}
           >
             <Check className="w-4 h-4" />
           </motion.button>
@@ -108,35 +106,11 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
         </span>
       </div>
 
-      {showImage && task.image && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowImage(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.8 }}
-            className="relative w-full max-w-2xl h-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={task.image}
-              alt="Task attachment"
-              className="w-full h-auto object-contain rounded-lg shadow-2xl"
-            />
-            <button
-              onClick={() => setShowImage(false)}
-              className="absolute -top-2 -right-2 p-2 bg-gray-800 bg-opacity-75 text-white rounded-full hover:bg-opacity-100 transition-all duration-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
+      <ImagePreviewModal
+        isOpen={showImage}
+        onClose={() => setShowImage(false)}
+        imageUrl={task.image || ''}
+      />
     </motion.div>
   );
 }

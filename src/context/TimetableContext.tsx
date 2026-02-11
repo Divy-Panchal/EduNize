@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { FirestoreService } from '../services/firestoreService';
+import { FCMService } from '../services/fcmService';
+import { LocalNotificationService } from '../services/localNotificationService';
 import toast from 'react-hot-toast';
 
 export interface TimetableClass {
@@ -66,6 +68,19 @@ export function TimetableProvider({ children }: { children: React.ReactNode }) {
                 id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             };
             await timetableService.setDocument(newClass.id!, newClass);
+
+            // Schedule push notification
+            const classTime = getNextClassDate(newClass.day, newClass.time);
+            FCMService.scheduleClassNotification(
+                newClass.id!,
+                newClass.subject,
+                classTime
+            );
+            LocalNotificationService.scheduleClassReminder(
+                newClass.id!,
+                newClass.subject,
+                classTime
+            );
         } catch (error) {
             console.error('Error adding class:', error);
             toast.error('Failed to add class. Please try again.');
@@ -100,6 +115,27 @@ export function TimetableProvider({ children }: { children: React.ReactNode }) {
             console.error('Error updating class:', error);
             toast.error('Failed to update class. Please try again.');
         }
+    };
+
+    // Helper to get the next date for a specific day and time
+    const getNextClassDate = (day: number, timeStr: string) => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const now = new Date();
+        const result = new Date();
+
+        result.setHours(hours, minutes, 0, 0);
+
+        // Convert JS Sunday (0) to 6, and shift Monday-Saturday (1-6) to 0-5
+        const currentDay = now.getDay();
+        const dayIndex = currentDay === 0 ? 6 : currentDay - 1;
+
+        let daysToAdd = day - dayIndex;
+        if (daysToAdd < 0 || (daysToAdd === 0 && now > result)) {
+            daysToAdd += 7;
+        }
+
+        result.setDate(result.getDate() + daysToAdd);
+        return result;
     };
 
 
