@@ -16,7 +16,7 @@ const AnimatedDigit = ({ digit }: { digit: number }) => {
         {[...Array(10).keys()].map(i => (
           <span
             key={i}
-            className="text-6xl md:text-8xl font-bold tracking-tight tabular-nums"
+            className="text-5xl md:text-8xl font-bold tracking-tight tabular-nums"
             style={{ height: `${digitHeight}px`, lineHeight: `${digitHeight}px` }}
           >
             {i}
@@ -61,7 +61,7 @@ export function PomodoroTimer() {
   useEffect(() => {
     const handleResize = () => {
       if (circleRef.current) {
-        setRadius(circleRef.current.offsetWidth / 2 - 16);
+        setRadius(circleRef.current.offsetWidth / 2 - 6);
       }
     };
     handleResize();
@@ -247,356 +247,361 @@ export function PomodoroTimer() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`text-center sticky top-0 z-50 py-4 -mx-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
-          }`}
-      >
-        <h1 className={`text-4xl md:text-5xl font-bold ${themeConfig.text} mb-2`}>
-          Pomodoro Timer
-        </h1>
-        <p className={`text-lg ${themeConfig.textSecondary}`}>
-          {isActive ? '🎯 Stay focused!' : isAlarmPlaying ? "⏰ Time's up!" : '⏱️ Drag the dot to set your time'}
-        </p>
-      </motion.div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Stats */}
+    <div className="max-w-7xl mx-auto h-full flex flex-col overflow-y-auto">
+      <div className="sticky top-0 z-50 p-4 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center transition-colors duration-200"
         >
-          {/* Sessions Card */}
-          <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className={`text-sm ${themeConfig.textSecondary}`}>Completed Sessions</p>
-                <p className={`text-3xl font-bold ${themeConfig.text}`}>{sessions}</p>
-              </div>
-            </div>
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
-                initial={{ width: 0 }}
-                animate={{ width: `${(sessions % 4) * 25}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <p className={`text-xs ${themeConfig.textSecondary} mt-2`}>
-              {4 - (sessions % 4)} sessions until long break
-            </p>
-          </div>
-
-          {/* Total Time Card */}
-          <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className={`text-sm ${themeConfig.textSecondary}`}>Total Focus Time</p>
-                <p className={`text-3xl font-bold ${themeConfig.text}`}>
-                  {Math.floor(totalMinutes)}<span className="text-lg">m</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Productivity Tip */}
-          <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
-            <div className="flex items-start gap-3">
-              <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-1" />
-              <div>
-                <p className={`text-sm font-semibold ${themeConfig.text} mb-1`}>💡 Productivity Tip</p>
-                <p className={`text-xs ${themeConfig.textSecondary}`}>
-                  Take regular breaks to maintain focus and avoid burnout. The Pomodoro Technique helps you work smarter, not harder!
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Center Column - Timer */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-col items-center justify-center space-y-6"
-        >
-          {/* Timer Circle */}
-          <motion.div
-            ref={circleRef}
-            className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center select-none"
-            style={{ touchAction: 'pan-y' }}
-          >
-            {/* Background Circle */}
-            <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${getModeColor()} opacity-10`} />
-
-            {/* SVG Progress Ring */}
-            <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="currentColor"
-                strokeWidth="2"
-                fill="transparent"
-                className="text-gray-200 dark:text-gray-700"
-              />
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="currentColor"
-                strokeWidth="3"
-                fill="transparent"
-                strokeDasharray={`${2 * Math.PI * 45}`}
-                strokeDashoffset={`${(2 * Math.PI * 45) * (1 - progress)}`}
-                className={getModeRingColor()}
-                strokeLinecap="round"
-                transition={{ duration: 0.1 }}
-                style={{ filter: `drop-shadow(0 0 8px currentColor)` }}
-              />
-            </svg>
-
-            {/* Draggable Dot */}
-            <motion.div
-              className="absolute z-10 w-10 h-10"
-              animate={controls}
-              style={{
-                cursor: isActive ? 'default' : 'grab',
-                pointerEvents: isActive ? 'none' : 'auto'
-              }}
-              whileTap={{ cursor: 'grabbing' }}
-              drag
-              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              dragElastic={0}
-              dragMomentum={false}
-              onDragStart={onPanStart}
-              onDrag={(_, info) => handlePan(_ as any, info)}
-              onDragEnd={onPanEnd}
-            >
-              <div
-                className={`w-full h-full bg-white dark:bg-gray-800 rounded-full border-4 ${getModeRingColor()} shadow-xl`}
-                style={{ boxShadow: `0 0 20px 5px ${isAlarmPlaying ? 'rgba(239, 68, 68, 0.5)' : 'rgba(59, 130, 246, 0.5)'}` }}
-              />
-            </motion.div>
-
-            {/* Edit Icon - always visible on mobile, hover on desktop */}
-            {!isActive && (
-              <motion.div
-                className={`absolute z-20 cursor-pointer left-1/2 -translate-x-1/2 ${isHoveringTimer ? 'opacity-100' : 'opacity-100 md:opacity-0'
-                  }`}
-                style={{ top: '72%' }}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: isHoveringTimer ? 1 : 1, y: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                onClick={handleOpenEdit}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/20 dark:to-purple-400/20 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-blue-400/40 dark:border-blue-500/40">
-                  <Edit3 className={`w-6 h-6 ${getModeRingColor()}`} strokeWidth={2.5} />
-                </div>
-              </motion.div>
-            )}
-
-            {/* Timer Display */}
-            <div className="absolute flex flex-col items-center justify-center z-0">
-              {isAlarmPlaying ? (
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={stopAlarm}
-                  className="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-full shadow-2xl"
-                >
-                  <VolumeX size={56} />
-                </motion.button>
-              ) : (
-                <>
-                  <motion.div
-                    className={`flex items-baseline ${themeConfig.text} relative group`}
-                    onClick={handleOpenEdit}
-                    onMouseEnter={() => setIsHoveringTimer(true)}
-                    onMouseLeave={() => setIsHoveringTimer(false)}
-                  >
-                    <AnimatedDigit digit={parseInt(minutesStr[0])} />
-                    <AnimatedDigit digit={parseInt(minutesStr[1])} />
-                    <span className="text-6xl md:text-8xl font-bold tracking-tight">:</span>
-                    <AnimatedDigit digit={parseInt(secondsStr[0])} />
-                    <AnimatedDigit digit={parseInt(secondsStr[1])} />
-                  </motion.div>
-                  <div className="flex items-center gap-2 mt-4">
-                    {mode === 'work' ? (
-                      <BookOpen className={`w-6 h-6 ${getModeRingColor()}`} />
-                    ) : (
-                      <Coffee className={`w-6 h-6 ${getModeRingColor()}`} />
-                    )}
-                    <span className={`text-base font-semibold ${themeConfig.text} uppercase tracking-wider`}>
-                      {mode === 'work' ? 'Focus Time' : mode === 'short' ? 'Short Break' : 'Long Break'}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Control Buttons */}
-          <div className="flex justify-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleTimer}
-              className={`${isActive
-                ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-                : 'bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                } text-white p-5 rounded-2xl shadow-xl`}
-            >
-              {isActive ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={resetTimer}
-              className="bg-gradient-to-br from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white p-5 rounded-2xl shadow-xl"
-            >
-              <RotateCcw size={32} />
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Right Column - Mode Selection */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4"
-        >
-          <h3 className={`text-xl font-bold ${themeConfig.text} mb-4`}>Select Mode</h3>
-
-          <ModeButton
-            modeType="work"
-            icon={BookOpen}
-            label="Work Session"
-            gradientColor="from-blue-500 to-blue-600"
-          />
-
-          <ModeButton
-            modeType="short"
-            icon={Coffee}
-            label="Short Break"
-            gradientColor="from-green-500 to-green-600"
-          />
-
-          <ModeButton
-            modeType="long"
-            icon={Coffee}
-            label="Long Break"
-            gradientColor="from-purple-500 to-purple-600"
-          />
+          <h1 className={`text-4xl md:text-5xl font-bold ${themeConfig.text} mb-2`}>
+            Pomodoro Timer
+          </h1>
+          <p className={`text-lg ${themeConfig.textSecondary}`}>
+            {isActive ? '🎯 Stay focused!' : isAlarmPlaying ? "⏰ Time's up!" : '⏱️ Drag the dot to set your time'}
+          </p>
         </motion.div>
       </div>
 
-      {/* Edit Time Modal */}
-      {isEditingTime && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={handleCancelEdit}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-            className={`${themeConfig.card} p-8 rounded-3xl shadow-2xl border dark:border-gray-700 max-w-md w-full`}
-          >
-            <div className="text-center mb-6">
-              <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${getModeColor()} mb-4`}>
-                <Clock className="w-8 h-8 text-white" />
-              </div>
-              <h2 className={`text-2xl font-bold ${themeConfig.text}`}>Set Timer</h2>
-              <p className={`text-sm ${themeConfig.textSecondary} mt-2`}>
-                Enter your desired time
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
-                    Minutes
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="60"
-                    value={editMinutes}
-                    onChange={(e) => setEditMinutes(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
-                      ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
-                      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
-                      } outline-none transition-all text-center text-2xl font-bold`}
-                    placeholder="00"
-                    autoFocus
+      <div className="flex-1 p-4 pb-32">
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Stats */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-4"
+            >
+              {/* Sessions Card */}
+              <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                    <Target className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className={`text-sm ${themeConfig.textSecondary}`}>Completed Sessions</p>
+                    <p className={`text-3xl font-bold ${themeConfig.text}`}>{sessions}</p>
+                  </div>
+                </div>
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(sessions % 4) * 25}%` }}
+                    transition={{ duration: 0.5 }}
                   />
                 </div>
-                <div>
-                  <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
-                    Seconds
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={editSeconds}
-                    onChange={(e) => setEditSeconds(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
-                      ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
-                      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
-                      } outline-none transition-all text-center text-2xl font-bold`}
-                    placeholder="00"
-                  />
+                <p className={`text-xs ${themeConfig.textSecondary} mt-2`}>
+                  {4 - (sessions % 4)} sessions until long break
+                </p>
+              </div>
+
+              {/* Total Time Card */}
+              <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className={`text-sm ${themeConfig.textSecondary}`}>Total Focus Time</p>
+                    <p className={`text-3xl font-bold ${themeConfig.text}`}>
+                      {Math.floor(totalMinutes)}<span className="text-lg">m</span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleCancelEdit}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${theme === 'dark'
-                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-                    }`}
+              {/* Productivity Tip */}
+              <div className={`${themeConfig.card} p-6 rounded-2xl shadow-lg border dark:border-gray-700`}>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-1" />
+                  <div>
+                    <p className={`text-sm font-semibold ${themeConfig.text} mb-1`}>💡 Productivity Tip</p>
+                    <p className={`text-xs ${themeConfig.textSecondary}`}>
+                      Take regular breaks to maintain focus and avoid burnout. The Pomodoro Technique helps you work smarter, not harder!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Center Column - Timer */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-col items-center justify-center space-y-6"
+            >
+              {/* Timer Circle */}
+              <motion.div
+                ref={circleRef}
+                className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center select-none"
+                style={{ touchAction: 'pan-y' }}
+              >
+                {/* Background Circle */}
+                <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${getModeColor()} opacity-10`} />
+
+                {/* SVG Progress Ring */}
+                <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="48"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill="transparent"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="48"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 48}`}
+                    strokeDashoffset={`${(2 * Math.PI * 48) * (1 - progress)}`}
+                    className={getModeRingColor()}
+                    strokeLinecap="round"
+                    transition={{ duration: 0.1 }}
+                    style={{ filter: `drop-shadow(0 0 8px currentColor)` }}
+                  />
+                </svg>
+
+                {/* Draggable Dot */}
+                <motion.div
+                  className="absolute z-10 w-10 h-10 top-1/2 left-1/2 -ml-5 -mt-5"
+                  animate={controls}
+                  style={{
+                    cursor: isActive ? 'default' : 'grab',
+                    pointerEvents: isActive ? 'none' : 'auto'
+                  }}
+                  whileTap={{ cursor: 'grabbing' }}
+                  drag
+                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragElastic={0}
+                  dragMomentum={false}
+                  onDragStart={onPanStart}
+                  onDrag={(_, info) => handlePan(_ as any, info)}
+                  onDragEnd={onPanEnd}
                 >
-                  Cancel
+                  <div
+                    className={`w-full h-full bg-white dark:bg-gray-800 rounded-full border-4 ${getModeRingColor()} shadow-xl`}
+                    style={{ boxShadow: `0 0 20px 5px ${isAlarmPlaying ? 'rgba(239, 68, 68, 0.5)' : 'rgba(59, 130, 246, 0.5)'}` }}
+                  />
+                </motion.div>
+
+                {/* Edit Icon - always visible on mobile, hover on desktop */}
+                {!isActive && (
+                  <motion.div
+                    className={`absolute z-20 cursor-pointer left-1/2 -translate-x-1/2 ${isHoveringTimer ? 'opacity-100' : 'opacity-100 md:opacity-0'
+                      }`}
+                    style={{ top: '72%' }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: isHoveringTimer ? 1 : 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    onClick={handleOpenEdit}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/20 dark:to-purple-400/20 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-blue-400/40 dark:border-blue-500/40">
+                      <Edit3 className={`w-6 h-6 ${getModeRingColor()}`} strokeWidth={2.5} />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Timer Display */}
+                <div className="absolute flex flex-col items-center justify-center z-0">
+                  {isAlarmPlaying ? (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={stopAlarm}
+                      className="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-full shadow-2xl"
+                    >
+                      <VolumeX size={56} />
+                    </motion.button>
+                  ) : (
+                    <>
+                      <motion.div
+                        className={`flex items-baseline ${themeConfig.text} relative group`}
+                        onClick={handleOpenEdit}
+                        onMouseEnter={() => setIsHoveringTimer(true)}
+                        onMouseLeave={() => setIsHoveringTimer(false)}
+                      >
+                        <AnimatedDigit digit={parseInt(minutesStr[0])} />
+                        <AnimatedDigit digit={parseInt(minutesStr[1])} />
+                        <span className="text-5xl md:text-8xl font-bold tracking-tight">:</span>
+                        <AnimatedDigit digit={parseInt(secondsStr[0])} />
+                        <AnimatedDigit digit={parseInt(secondsStr[1])} />
+                      </motion.div>
+                      <div className="flex items-center gap-2 mt-4">
+                        {mode === 'work' ? (
+                          <BookOpen className={`w-6 h-6 ${getModeRingColor()}`} />
+                        ) : (
+                          <Coffee className={`w-6 h-6 ${getModeRingColor()}`} />
+                        )}
+                        <span className={`text-base font-semibold ${themeConfig.text} uppercase tracking-wider`}>
+                          {mode === 'work' ? 'Focus Time' : mode === 'short' ? 'Short Break' : 'Long Break'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Control Buttons */}
+              <div className="flex justify-center gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleTimer}
+                  className={`${isActive
+                    ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                    : 'bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                    } text-white p-5 rounded-2xl shadow-xl`}
+                >
+                  {isActive ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSaveEdit}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-br ${getModeColor()} shadow-lg`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={resetTimer}
+                  className="bg-gradient-to-br from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white p-5 rounded-2xl shadow-xl"
                 >
-                  Save
+                  <RotateCcw size={32} />
                 </motion.button>
               </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
+            </motion.div>
+
+            {/* Right Column - Mode Selection */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-4"
+            >
+              <h3 className={`text-xl font-bold ${themeConfig.text} mb-4`}>Select Mode</h3>
+
+              <ModeButton
+                modeType="work"
+                icon={BookOpen}
+                label="Work Session"
+                gradientColor="from-blue-500 to-blue-600"
+              />
+
+              <ModeButton
+                modeType="short"
+                icon={Coffee}
+                label="Short Break"
+                gradientColor="from-green-500 to-green-600"
+              />
+
+              <ModeButton
+                modeType="long"
+                icon={Coffee}
+                label="Long Break"
+                gradientColor="from-purple-500 to-purple-600"
+              />
+            </motion.div>
+          </div>
+
+          {/* Edit Time Modal */}
+          {isEditingTime && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+              onClick={handleCancelEdit}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className={`${themeConfig.card} p-8 rounded-3xl shadow-2xl border dark:border-gray-700 max-w-md w-full`}
+              >
+                <div className="text-center mb-6">
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${getModeColor()} mb-4`}>
+                    <Clock className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className={`text-2xl font-bold ${themeConfig.text}`}>Set Timer</h2>
+                  <p className={`text-sm ${themeConfig.textSecondary} mt-2`}>
+                    Enter your desired time
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
+                        Minutes
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="60"
+                        value={editMinutes}
+                        onChange={(e) => setEditMinutes(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
+                          ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
+                          : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
+                          } outline-none transition-all text-center text-2xl font-bold`}
+                        placeholder="00"
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>
+                        Seconds
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={editSeconds}
+                        onChange={(e) => setEditSeconds(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${theme === 'dark'
+                          ? 'bg-gray-800 border-gray-700 text-white focus:border-blue-500'
+                          : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
+                          } outline-none transition-all text-center text-2xl font-bold`}
+                        placeholder="00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleCancelEdit}
+                      className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${theme === 'dark'
+                        ? 'bg-gray-800 hover:bg-gray-700 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                        }`}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleSaveEdit}
+                      className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-br ${getModeColor()} shadow-lg`}
+                    >
+                      Save
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

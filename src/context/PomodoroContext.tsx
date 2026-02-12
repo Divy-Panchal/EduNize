@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { App } from '@capacitor/app';
 import { useAuth } from './AuthContext';
 import { useDailyStats } from './DailyStatsContext';
 import { getTimeOfDay, updateTimeBasedAchievements } from '../utils/achievementHelpers';
@@ -18,6 +19,10 @@ interface PomodoroSettings {
     durations: PomodoroDurations;
     sessions: number;
     totalMinutes: number;
+    startTimestamp?: number;
+    isTimerActive?: boolean;
+    activeMode?: PomodoroMode;
+    timerTimeLeft?: number;
 }
 
 interface PomodoroContextType {
@@ -46,13 +51,13 @@ interface PomodoroContextType {
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
 
 const DEFAULT_DURATIONS = { work: 30 * 60, short: 5 * 60, long: 15 * 60 };
-const MAX_SECONDS = 60 * 60;
 
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const { addStudyTime, incrementFocusSession } = useDailyStats();
 
     const alarmRef = useRef<HTMLAudioElement | null>(null);
+    const startTimestampRef = useRef<number | null>(null);
 
     const [durations, setDurationsState] = useState<PomodoroDurations>(DEFAULT_DURATIONS);
     const [mode, setMode] = useState<PomodoroMode>('work');
@@ -84,6 +89,20 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
                     setDurationsState(settings.durations || DEFAULT_DURATIONS);
                     setSessions(settings.sessions || 0);
                     setTotalMinutes(settings.totalMinutes || 0);
+
+                    // Restore timer state if it was running
+                    if (settings.isTimerActive && settings.startTimestamp && settings.activeMode) {
+                        const elapsed = Math.floor((Date.now() - settings.startTimestamp) / 1000);
+                        const remaining = Math.max(0, (settings.timerTimeLeft || 0) - elapsed);
+
+                        setMode(settings.activeMode);
+                        setTimeLeft(remaining);
+
+                        if (remaining > 0) {
+                            setIsActive(true);
+                            startTimestampRef.current = settings.startTimestamp;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error loading Pomodoro settings:', error);
@@ -147,6 +166,32 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
         return () => clearTimeout(saveTotalMinutesDebounced);
     }, [totalMinutes, user]);
+
+    // Listen for app state changes (background/foreground)
+    useEffect(() => {
+        const handleAppStateChange = (state: { isActive: boolean }) => {
+            if (state.isActive && isActive && startTimestampRef.current) {
+                // App returned to foreground while timer is running
+                // Recalculate time based on elapsed time
+                const elapsed = Math.floor((Date.now() - startTimestampRef.current) / 1000);
+                const initialTime = durations[mode];
+                const remaining = Math.max(0, initialTime - elapsed);
+
+                setTimeLeft(remaining);
+
+                // If timer completed while in background, trigger completion
+                if (remaining === 0 && timeLeft > 0) {
+                    // Timer will be handled by the completion effect
+                }
+            }
+        };
+
+        const listener = App.addListener('appStateChange', handleAppStateChange);
+
+        return () => {
+            listener.then(l => l.remove());
+        };
+    }, [isActive, mode, durations, timeLeft]);
 
     // Play alarm sound
     const playAlarm = useCallback(() => {
@@ -224,19 +269,26 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         }
     }, [durations, stopAlarm]);
 
-    // Timer countdown logic
+    // Timer countdown logic - timestamp-based for background support
     useEffect(() => {
         if (!isActive || timeLeft === 0) return;
 
         const interval = setInterval(() => {
-            setTimeLeft((prev) => prev - 1);
-            if (mode === 'work') {
+            if (!startTimestampRef.current) return;
+
+            const elapsed = Math.floor((Date.now() - startTimestampRef.current) / 1000);
+            const initialTime = durations[mode];
+            const remaining = Math.max(0, initialTime - elapsed);
+
+            setTimeLeft(remaining);
+
+            if (mode === 'work' && remaining > 0) {
                 setTotalMinutes(prev => prev + 1 / 60);
             }
-        }, 1000);
+        }, 100); // Update every 100ms for smooth display
 
         return () => clearInterval(interval);
-    }, [isActive, timeLeft, mode]);
+    }, [isActive, timeLeft, mode, durations]);
 
     // Handle timer completion
     useEffect(() => {
@@ -272,17 +324,51 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isActive, timeLeft, mode, sessions, switchMode, playAlarm, durations.work, addStudyTime, incrementFocusSession, user]);
 
-    const toggleTimer = () => {
+    const toggleTimer = async () => {
         const nextActive = !isActive;
         setIsActive(nextActive);
 
         if (nextActive) {
+            // Starting timer - save timestamp
+            const now = Date.now();
+            startTimestampRef.current = now;
+
             // Schedule local notification for completion
             LocalNotificationService.scheduleFocusCompletion(timeLeft / 60);
+
+            // Persist timer state to Firestore
+            if (user) {
+                try {
+                    const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+                    await pomodoroService.setDocument('settings', {
+                        startTimestamp: now,
+                        isTimerActive: true,
+                        activeMode: mode,
+                        timerTimeLeft: timeLeft,
+                    });
+                } catch (error) {
+                    console.error('Error saving timer state:', error);
+                }
+            }
         } else {
+            // Pausing timer - clear timestamp
+            startTimestampRef.current = null;
             stopAlarm();
+
             // Cancel local notification if paused
             LocalNotificationService.cancelFocusNotification();
+
+            // Clear timer state from Firestore
+            if (user) {
+                try {
+                    const pomodoroService = new FirestoreService<PomodoroSettings>(user.uid, 'pomodoro');
+                    await pomodoroService.setDocument('settings', {
+                        isTimerActive: false,
+                    });
+                } catch (error) {
+                    console.error('Error clearing timer state:', error);
+                }
+            }
         }
     };
 
@@ -290,6 +376,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         stopAlarm();
         setIsActive(false);
         setTimeLeft(durations[mode]);
+        startTimestampRef.current = null;
     };
 
     return (

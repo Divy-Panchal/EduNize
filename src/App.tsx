@@ -246,7 +246,7 @@ function AppContent() {
       {!showOnboarding && !showProfileSetup && (
         <div className="flex flex-col md:flex-row h-screen overflow-hidden fixed inset-0 w-full">
           <Navigation />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-32 md:pb-6 safe-area-top safe-area-bottom scroll-smooth relative" id="main-scroll-container">
+          <main className="flex-1 overflow-hidden flex flex-col safe-area-top safe-area-bottom relative" id="main-scroll-container">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -255,7 +255,7 @@ function AppContent() {
                 exit="out"
                 variants={pageVariants}
                 transition={pageTransition}
-                className="min-h-full"
+                className="h-full w-full"
               >
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />

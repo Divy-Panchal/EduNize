@@ -118,124 +118,127 @@ export function Subjects() {
   };
 
   return (
-    <div className="space-y-6 pb-40">
+    <div className="h-full flex flex-col overflow-y-auto">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`text-center px-4 sticky top-0 z-50 py-4 -mx-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
-          }`}
-      >
-        <h1 className={`text-3xl font-bold ${themeConfig.text} mb-2`}>
-          My Subjects
-        </h1>
-        <p className={`${themeConfig.textSecondary} text-sm`}>
-          Add and manage your subjects
-        </p>
-      </motion.div>
-
-      {/* Add Subject Button */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="px-4"
-      >
-        <motion.button
-          onClick={() => setShowAddModal(true)}
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          className={`w-full rounded-2xl p-6 shadow-md border-2 border-dashed transition-all duration-300
-            ${theme === 'dark'
-              ? 'bg-green-900/50 border-green-700/50 hover:bg-green-900/70 hover:border-green-600 hover:shadow-green-900/30'
-              : 'bg-green-50 border-green-300/50 hover:bg-green-100 hover:border-green-400 hover:shadow-green-200/50'
-            } hover:shadow-lg`}
+      <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
         >
-          <div className="flex items-center justify-center gap-3">
-            <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-green-800/50' : 'bg-green-200/50'}`}>
-              <Plus className={`w-8 h-8 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`} />
-            </div>
-            <div className="text-left">
-              <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-green-200' : 'text-green-800'}`}>Add New Subject</h3>
-              <p className={`text-sm ${theme === 'dark' ? 'text-green-300/70' : 'text-green-600/80'}`}>Click to add your first subject</p>
-            </div>
-          </div>
-        </motion.button>
-      </motion.div>
+          <h1 className={`text-3xl font-bold ${themeConfig.text} mb-2`}>
+            My Subjects
+          </h1>
+          <p className={`${themeConfig.textSecondary} text-sm`}>
+            Add and manage your subjects
+          </p>
+        </motion.div>
+      </div>
 
-      {/* Subjects List */}
-      <div className="px-4 space-y-4">
-        <AnimatePresence>
-          {subjects.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className={`${themeConfig.card} rounded-2xl p-8 text-center border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'}`}
-            >
+      <div className="flex-1 p-4 md:p-6 pt-2 pb-32 md:pb-6">
+        {/* Add Subject Button */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6"
+        >
+          <motion.button
+            onClick={() => setShowAddModal(true)}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full rounded-2xl p-6 shadow-md border-2 border-dashed transition-all duration-300
+            ${theme === 'dark'
+                ? 'bg-green-900/50 border-green-700/50 hover:bg-green-900/70 hover:border-green-600 hover:shadow-green-900/30'
+                : 'bg-green-50 border-green-300/50 hover:bg-green-100 hover:border-green-400 hover:shadow-green-200/50'
+              } hover:shadow-lg`}
+          >
+            <div className="flex items-center justify-center gap-3">
+              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-green-800/50' : 'bg-green-200/50'}`}>
+                <Plus className={`w-8 h-8 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`} />
+              </div>
+              <div className="text-left">
+                <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-green-200' : 'text-green-800'}`}>Add New Subject</h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-green-300/70' : 'text-green-600/80'}`}>Click to add your first subject</p>
+              </div>
+            </div>
+          </motion.button>
+        </motion.div>
+
+        {/* Subjects List */}
+        <div className="space-y-4">
+          <AnimatePresence>
+            {subjects.length === 0 ? (
               <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`${themeConfig.card} rounded-2xl p-8 text-center border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'}`}
               >
-                <BookOpen className={`w-16 h-16 mx-auto ${themeConfig.textSecondary}`} />
-              </motion.div>
-              <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2`}>
-                No subjects yet
-              </h3>
-              <p className={`${themeConfig.textSecondary} text-sm`}>
-                Add your first subject to get started with your studies
-              </p>
-            </motion.div>
-          ) : (
-            subjects.map((subject, index) => (
-              <motion.div
-                key={subject.id}
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                className="relative"
-              >
-                <div
-                  className={`bg-gradient-to-r ${subject.color} rounded-2xl p-1 shadow-lg cursor-pointer`}
-                  onClick={() => navigate(`/subjects/${subject.id}`)}
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="mb-4"
                 >
-                  <div className={`${themeConfig.card} rounded-xl p-4 h-20 flex items-center justify-between relative overflow-hidden`}>
-                    {/* Background Icon */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5">
-                      {React.createElement(getSubjectIcon(subject.name), { className: 'w-24 h-24' })}
-                    </div>
-
-                    <div className="relative z-10 flex items-center gap-3 flex-1">
-                      {/* Subject Icon */}
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-r ${subject.color} shadow-md`}>
-                        {React.createElement(getSubjectIcon(subject.name), { className: 'w-6 h-6 text-white' })}
+                  <BookOpen className={`w-16 h-16 mx-auto ${themeConfig.textSecondary}`} />
+                </motion.div>
+                <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2`}>
+                  No subjects yet
+                </h3>
+                <p className={`${themeConfig.textSecondary} text-sm`}>
+                  Add your first subject to get started with your studies
+                </p>
+              </motion.div>
+            ) : (
+              subjects.map((subject, index) => (
+                <motion.div
+                  key={subject.id}
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <div
+                    className={`bg-gradient-to-r ${subject.color} rounded-2xl p-1 shadow-lg cursor-pointer`}
+                    onClick={() => navigate(`/subjects/${subject.id}`)}
+                  >
+                    <div className={`${themeConfig.card} rounded-xl p-4 h-20 flex items-center justify-between relative overflow-hidden`}>
+                      {/* Background Icon */}
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5">
+                        {React.createElement(getSubjectIcon(subject.name), { className: 'w-24 h-24' })}
                       </div>
 
-                      {/* Subject Name */}
-                      <h3 className={`text-lg font-bold ${themeConfig.text} capitalize`}>
-                        {subject.name}
-                      </h3>
+                      <div className="relative z-10 flex items-center gap-3 flex-1">
+                        {/* Subject Icon */}
+                        <div className={`p-2.5 rounded-xl bg-gradient-to-r ${subject.color} shadow-md`}>
+                          {React.createElement(getSubjectIcon(subject.name), { className: 'w-6 h-6 text-white' })}
+                        </div>
+
+                        {/* Subject Name */}
+                        <h3 className={`text-lg font-bold ${themeConfig.text} capitalize`}>
+                          {subject.name}
+                        </h3>
+                      </div>
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSubject(subject.id);
+                        }}
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="relative z-10 bg-red-500 hover:bg-red-600 p-2 rounded-full transition-colors"
+                      >
+                        <X className="w-5 h-5 text-white" />
+                      </motion.button>
                     </div>
-                    <motion.button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteSubject(subject.id);
-                      }}
-                      whileHover={{ scale: 1.1, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="relative z-10 bg-red-500 hover:bg-red-600 p-2 rounded-full transition-colors"
-                    >
-                      <X className="w-5 h-5 text-white" />
-                    </motion.button>
                   </div>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </AnimatePresence>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Add Subject Modal */}

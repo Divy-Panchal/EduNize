@@ -28,9 +28,9 @@ export class FCMService {
 
             // Create a high-importance channel for "WhatsApp-like" behavior
             await PushNotifications.createChannel({
-                id: 'fcm_default_channel',
-                name: 'Pop-up Notifications',
-                description: 'Show notifications with sound and pop-up',
+                id: 'fcm_default_channel_v2',
+                name: 'High Priority Notifications',
+                description: 'Show notifications with sound and vibration',
                 importance: 5, // High importance (heads up)
                 visibility: 1, // Public
                 sound: 'default',

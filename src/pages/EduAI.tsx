@@ -227,7 +227,7 @@ export function EduAI() {
     const showWelcome = messages.length === 0;
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-6rem)] max-w-7xl mx-auto gap-4">
+        <div className="h-full flex flex-col max-w-7xl mx-auto md:gap-4 md:flex-row">
             {/* History Sidebar */}
             <HistorySidebar
                 isOpen={isSidebarOpen}
@@ -236,77 +236,79 @@ export function EduAI() {
             />
 
             {/* Main Chat Area */}
-            <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex flex-col flex-1 min-w-0 h-full">
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700 mb-4 sticky top-4 z-50`}
-                >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            {/* History Toggle Button */}
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className={`p-2 rounded-lg ${theme === 'dark'
-                                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                                    } transition-colors`}
-                                title="Chat History"
-                            >
-                                {isMobile ? <Menu className="w-5 h-5" /> : <History className="w-5 h-5" />}
-                            </motion.button>
+                <div className="sticky top-0 z-50 pb-4 pt-8 md:pt-12 bg-gray-50/95 dark:bg-gray-900/95 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {/* History Toggle Button */}
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                    className={`p-2 rounded-lg ${theme === 'dark'
+                                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                        } transition-colors`}
+                                    title="Chat History"
+                                >
+                                    {isMobile ? <Menu className="w-5 h-5" /> : <History className="w-5 h-5" />}
+                                </motion.button>
 
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 opacity-20 blur-xl rounded-full" />
-                                <div className="relative bg-white p-2 rounded-xl shadow-sm flex items-center justify-center">
-                                    <img src="/eduai-logo.png" alt="EduAI" className="w-8 h-8 object-contain" />
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 opacity-20 blur-xl rounded-full" />
+                                    <div className="relative bg-white p-2 rounded-xl shadow-sm flex items-center justify-center">
+                                        <img src="/eduai-logo.png" alt="EduAI" className="w-8 h-8 object-contain" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 className={`text-xl md:text-2xl font-bold ${themeConfig.text}`}>
+                                        EduAI
+                                    </h1>
+                                    <p className={`text-sm ${themeConfig.textSecondary}`}>
+                                        Your AI Study Companion
+                                    </p>
                                 </div>
                             </div>
-                            <div>
-                                <h1 className={`text-xl md:text-2xl font-bold ${themeConfig.text}`}>
-                                    EduAI
-                                </h1>
-                                <p className={`text-sm ${themeConfig.textSecondary}`}>
-                                    Your AI Study Companion
-                                </p>
+                            <div className="flex items-center gap-2">
+                                {messages.length > 0 && (
+                                    <>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={handleNewChat}
+                                            className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors hidden md:block"
+                                            title="New chat"
+                                        >
+                                            New Chat
+                                        </motion.button>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={handleReset}
+                                            className={`p-2 rounded-lg ${theme === 'dark'
+                                                ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                                } transition-colors`}
+                                            title="Reset chat"
+                                        >
+                                            <RotateCcw className="w-5 h-5" />
+                                        </motion.button>
+                                    </>
+                                )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            {messages.length > 0 && (
-                                <>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={handleNewChat}
-                                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors hidden md:block"
-                                        title="New chat"
-                                    >
-                                        New Chat
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={handleReset}
-                                        className={`p-2 rounded-lg ${theme === 'dark'
-                                            ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                                            } transition-colors`}
-                                        title="Reset chat"
-                                    >
-                                        <RotateCcw className="w-5 h-5" />
-                                    </motion.button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                </div>
 
                 {/* Chat Area */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col`}>
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-20 md:mb-6`}>
+                    <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (
                                 <motion.div
@@ -314,26 +316,26 @@ export function EduAI() {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="flex flex-col items-center justify-center h-full py-8"
+                                    className="flex flex-col items-center justify-start h-full pt-6 pb-8 overflow-y-auto"
                                 >
                                     <motion.div
                                         initial={{ scale: 0, rotate: -180 }}
                                         animate={{ scale: 1, rotate: 0 }}
                                         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                                        className="mb-6"
+                                        className="mb-4"
                                     >
                                         <div className="relative">
                                             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 opacity-20 blur-3xl rounded-full" />
-                                            <div className="relative bg-white p-4 rounded-2xl shadow-lg flex items-center justify-center">
-                                                <img src="/eduai-logo.png" alt="EduAI" className="w-16 h-16 object-contain" />
+                                            <div className="relative bg-white p-3 rounded-2xl shadow-lg flex items-center justify-center">
+                                                <img src="/eduai-logo.png" alt="EduAI" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
                                             </div>
                                         </div>
                                     </motion.div>
 
-                                    <h2 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2 text-center`}>
+                                    <h2 className={`text-xl md:text-3xl font-bold ${themeConfig.text} mb-2 text-center px-4`}>
                                         Welcome to EduAI 👋
                                     </h2>
-                                    <p className={`text-sm md:text-base ${themeConfig.textSecondary} mb-8 text-center max-w-md`}>
+                                    <p className={`text-sm md:text-base ${themeConfig.textSecondary} mb-6 text-center max-w-md px-4`}>
                                         Your AI study companion. How can I help you learn today?
                                     </p>
 
@@ -373,7 +375,7 @@ export function EduAI() {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.3 }}
-                                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                            className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
                                         >
                                             <div
                                                 className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 ${message.role === 'user'
@@ -474,7 +476,7 @@ export function EduAI() {
                     </div>
 
                     {/* Input Area */}
-                    <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className={`p-4 border-t sticky bottom-16 md:bottom-0 z-[60] bg-white dark:bg-gray-900 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         {/* File Preview */}
                         {uploadedFile && (
                             <motion.div
@@ -530,7 +532,7 @@ export function EduAI() {
                                         ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700'
                                         : 'bg-gray-50 text-gray-900 placeholder-gray-500 border border-gray-200'
                                         } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    style={{ maxHeight: '150px' }}
+                                    style={{ maxHeight: '300px' }}
                                 />
                             </div>
 

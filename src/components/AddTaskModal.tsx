@@ -218,6 +218,6 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         </motion.div>
       )
       }
-    </AnimatePresence >
+    </AnimatePresence>
   );
 }

@@ -8,6 +8,11 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },
+    Keyboard: {
+      resize: 'none',
+      style: 'dark',
+      resizeOnFullScreen: true,
+    },
   },
 };
 

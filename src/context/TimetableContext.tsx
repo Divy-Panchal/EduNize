@@ -81,6 +81,8 @@ export function TimetableProvider({ children }: { children: React.ReactNode }) {
                 newClass.subject,
                 classTime
             );
+
+            toast.success('Class added successfully!');
         } catch (error) {
             console.error('Error adding class:', error);
             toast.error('Failed to add class. Please try again.');

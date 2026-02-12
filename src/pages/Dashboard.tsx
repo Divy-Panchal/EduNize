@@ -156,336 +156,310 @@ export function Dashboard() {
   const todayClasses = getTodayClasses();
 
   return (
-    <div className="space-y-6 pb-4 md:pb-28">
-      <motion.div
-        className={`flex justify-between items-start sticky top-0 z-50 py-4 -mx-4 px-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
-          }`}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
-            {userData.fullName ? `Welcome back, ${userData.fullName}! 👋` : 'Welcome back! 👋'}
-          </h1>
-          <p className={themeConfig.textSecondary}>
-            Here's what's happening with your studies today
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <DashboardProfile />
-        </div>
-      </motion.div>
+    <div className="h-full flex flex-col overflow-y-auto">
+      <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/95 dark:bg-gray-900/95 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+        <motion.div
+          className="flex justify-between items-start"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
+              {userData.fullName ? `Welcome back, ${userData.fullName}! 👋` : 'Welcome back! 👋'}
+            </h1>
+            <p className={themeConfig.textSecondary}>
+              Here's what's happening with your studies today
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <DashboardProfile />
+          </div>
+        </motion.div>
+      </div>
 
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className={`${themeConfig.card} p-6 rounded-xl shadow-sm border dark:border-gray-700`}
-      >
-        <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text} mb-4`}>Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              icon: Users,
-              label: 'Subjects',
-              path: '/subjects',
-              lightBg: 'bg-blue-50',
-              darkBg: 'bg-blue-900',
-              lightIcon: 'text-blue-600',
-              darkIcon: 'text-blue-200',
-              lightHover: 'hover:bg-blue-100',
-              darkHover: 'hover:bg-blue-800'
-            },
-            {
-              icon: Brain,
-              label: 'Start Timer',
-              path: '/pomodoro',
-              lightBg: 'bg-purple-50',
-              darkBg: 'bg-purple-900',
-              lightIcon: 'text-purple-600',
-              darkIcon: 'text-purple-200',
-              lightHover: 'hover:bg-purple-100',
-              darkHover: 'hover:bg-purple-800'
-            },
-            {
-              icon: TrendingUp,
-              label: 'Grades',
-              path: '/grades',
-              lightBg: 'bg-green-50',
-              darkBg: 'bg-green-900',
-              lightIcon: 'text-green-600',
-              darkIcon: 'text-green-200',
-              lightHover: 'hover:bg-green-100',
-              darkHover: 'hover:bg-green-800'
-            },
-            {
-              icon: Zap,
-              label: 'Add Task',
-              path: '/tasks',
-              lightBg: 'bg-orange-50',
-              darkBg: 'bg-orange-900',
-              lightIcon: 'text-orange-600',
-              darkIcon: 'text-orange-200',
-              lightHover: 'hover:bg-orange-100',
-              darkHover: 'hover:bg-orange-800'
-            }
-          ].map((action) => {
-            const isDark = theme === 'dark';
-            const bgColor = isDark ? action.darkBg : action.lightBg;
-            const iconColor = isDark ? action.darkIcon : action.lightIcon;
-            const hoverBg = isDark ? action.darkHover : action.lightHover;
-
-            return (
-              <Link
-                key={action.label}
-                to={action.path}
-                className="block"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm`}
-                >
-                  <div className={`p-2 rounded-lg ${iconColor}`}>
-                    <action.icon className="w-6 h-6" />
-                  </div>
-                  <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
-                    {action.label}
-                  </span>
-                </motion.div>
-              </Link>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-        {stats.map((stat, index) => (
+      <div className="flex-1 p-4 md:p-6 pt-2 pb-32 md:pb-6">
+        <div className="space-y-6">
+          {/* Quick Actions */}
           <motion.div
-            key={stat.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{ y: -5 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className={`${themeConfig.card} p-6 rounded-xl shadow-sm border dark:border-gray-700`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <span className={`text-2xl font-bold ${themeConfig.text}`}>
-                {stat.value}
-              </span>
-            </div>
-            <h3 className={`text-sm font-medium ${themeConfig.textSecondary} mb-3`}>
-              {stat.title}
-            </h3>
-            <div className="flex items-center gap-2">
-              <div className={`flex-1 ${themeConfig.background} rounded-full h-2.5`}>
-                <motion.div
-                  className={`h-2.5 ${stat.color} rounded-full`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${stat.progress}%` }}
-                  transition={{ duration: 1, delay: index * 0.2 }}
-                />
-              </div>
-              <span className={`text-xs font-semibold ${themeConfig.textSecondary} min-w-[2.5rem] text-right`}>
-                {Math.round(stat.progress)}%
-              </span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text} mb-4`}>Quick Actions</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  icon: Users,
+                  label: 'Subjects',
+                  path: '/subjects',
+                  lightBg: 'bg-blue-50',
+                  darkBg: 'bg-blue-900',
+                  lightIcon: 'text-blue-600',
+                  darkIcon: 'text-blue-200',
+                  lightHover: 'hover:bg-blue-100',
+                  darkHover: 'hover:bg-blue-800'
+                },
+                {
+                  icon: Brain,
+                  label: 'Start Timer',
+                  path: '/pomodoro',
+                  lightBg: 'bg-purple-50',
+                  darkBg: 'bg-purple-900',
+                  lightIcon: 'text-purple-600',
+                  darkIcon: 'text-purple-200',
+                  lightHover: 'hover:bg-purple-100',
+                  darkHover: 'hover:bg-purple-800'
+                },
+                {
+                  icon: TrendingUp,
+                  label: 'Grades',
+                  path: '/grades',
+                  lightBg: 'bg-green-50',
+                  darkBg: 'bg-green-900',
+                  lightIcon: 'text-green-600',
+                  darkIcon: 'text-green-200',
+                  lightHover: 'hover:bg-green-100',
+                  darkHover: 'hover:bg-green-800'
+                },
+                {
+                  icon: Zap,
+                  label: 'Add Task',
+                  path: '/tasks',
+                  lightBg: 'bg-orange-50',
+                  darkBg: 'bg-orange-900',
+                  lightIcon: 'text-orange-600',
+                  darkIcon: 'text-orange-200',
+                  lightHover: 'hover:bg-orange-100',
+                  darkHover: 'hover:bg-orange-800'
+                }
+              ].map((action) => {
+                const isDark = theme === 'dark';
+                const bgColor = isDark ? action.darkBg : action.lightBg;
+                const iconColor = isDark ? action.darkIcon : action.lightIcon;
+                const hoverBg = isDark ? action.darkHover : action.lightHover;
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Today's Schedule */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className={`lg:col-span-2 ${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <Calendar className={`w-5 h-5 ${themeConfig.primary.replace('bg-', 'text-')}`} />
-            <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text}`}>Today's Schedule</h2>
-          </div>
-
-          <div className="space-y-3">
-            {todayClasses.length === 0 ? (
-              <div className="relative text-center py-12 px-6">
-                {/* Glassmorphism background */}
-                <div className={`absolute inset-0 rounded-xl border ${theme === 'dark'
-                  ? 'bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm border-gray-700/50'
-                  : 'bg-gradient-to-br from-blue-50/50 to-purple-50/50 backdrop-blur-sm border-gray-200/50'
-                  }`} />
-
-                {/* Content */}
-                <div className="relative z-10">
-                  {/* 3D Coffee Cup Icon */}
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                    className="mb-6"
+                return (
+                  <Link
+                    key={action.label}
+                    to={action.path}
+                    className="block"
                   >
-                    <div className="relative inline-block">
-                      {/* Glow effect */}
-                      <div className={`absolute inset-0 ${themeConfig.primary.replace('bg-', 'bg-')} opacity-20 blur-2xl rounded-full`} />
-                      {/* Coffee cup SVG */}
-                      <svg className="w-20 h-20 mx-auto relative" viewBox="0 0 64 64" fill="none">
-                        <path d="M12 20h36v24c0 6.627-5.373 12-12 12h-12c-6.627 0-12-5.373-12-12V20z"
-                          className={themeConfig.primary.replace('bg-', 'fill-')} opacity="0.2" />
-                        <path d="M12 20h36v24c0 6.627-5.373 12-12 12h-12c-6.627 0-12-5.373-12-12V20z"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')} strokeWidth="2" fill="none" />
-                        <path d="M48 28h4c2.21 0 4 1.79 4 4s-1.79 4-4 4h-4"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')} strokeWidth="2" fill="none" />
-                        <path d="M16 16c0-2 2-4 4-4h20c2 0 4 2 4 4"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')} strokeWidth="2" strokeLinecap="round" />
-                        {/* Steam */}
-                        <motion.path
-                          d="M24 12c0-2 1-4 2-4"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          animate={{ opacity: [0.3, 0.7, 0.3] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                        <motion.path
-                          d="M32 10c0-2 1-4 2-4"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          animate={{ opacity: [0.5, 0.9, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-                        />
-                        <motion.path
-                          d="M40 12c0-2 1-4 2-4"
-                          className={themeConfig.primary.replace('bg-', 'stroke-')}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          animate={{ opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-                        />
-                      </svg>
-                    </div>
-                  </motion.div>
-
-                  {/* Main heading */}
-                  <motion.h3
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className={`text-xl font-bold ${themeConfig.text} mb-2`}
-                  >
-                    All Clear for Today! ✨
-                  </motion.h3>
-
-                  {/* Sub-text */}
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className={`text-sm ${themeConfig.textSecondary} mb-6 max-w-md mx-auto`}
-                  >
-                    No classes scheduled. It's a perfect time to crush your personal goals.
-                  </motion.p>
-
-                  {/* Theme-based button */}
-                  <Link to="/timetable">
-                    <motion.button
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
+                    <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 mx-auto transition-all duration-200
-                        ${theme === 'dark'
-                          ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
-                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                        } shadow-sm`}
+                      className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm`}
                     >
-                      <Plus className="w-5 h-5" />
-                      <span>Schedule Now</span>
-                    </motion.button>
+                      <div className={`p-2 rounded-lg ${iconColor}`}>
+                        <action.icon className="w-6 h-6" />
+                      </div>
+                      <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
+                        {action.label}
+                      </span>
+                    </motion.div>
                   </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
+              >
+                <div className="flex items-center justify-between mb-2 md:mb-4 gap-4">
+                  <div className={`${stat.color} p-2 md:p-3 rounded-lg`}>
+                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </div>
+                  <span className={`text-lg md:text-2xl font-bold ${themeConfig.text} break-words text-right`}>
+                    {stat.value}
+                  </span>
                 </div>
-              </div>
-            ) : (
-              todayClasses.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className={`flex items-center gap-3 md:gap-4 p-3 ${themeConfig.background} rounded-lg`}
-                >
-                  <div className={`text-xs md:text-sm font-medium ${themeConfig.textSecondary} w-10 md:w-12`}>
-                    {item.time}
+                <h3 className={`text-xs md:text-sm font-medium ${themeConfig.textSecondary} mb-2 md:mb-3`}>
+                  {stat.title}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <div className={`flex-1 ${themeConfig.background} rounded-full h-2.5`}>
+                    <motion.div
+                      className={`h-2.5 ${stat.color} rounded-full`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${stat.progress}%` }}
+                      transition={{ duration: 1, delay: index * 0.2 }}
+                    />
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`font-medium ${themeConfig.text} text-sm md:text-base`}>{item.subject}</h3>
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${item.color}`}>
-                      {item.type}
-                    </span>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        </motion.div>
-
-        {/* Upcoming Tasks */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <AlertCircle className={`w-5 h-5 ${themeConfig.secondary.replace('bg-', 'text-')}`} />
-            <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text}`}>Upcoming Tasks</h2>
+                  <span className={`text-xs font-semibold ${themeConfig.textSecondary} min-w-[2.5rem] text-right`}>
+                    {Math.round(stat.progress)}%
+                  </span>
+                </div>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="space-y-3">
-            {upcomingTasks.length === 0 ? (
-              <div className="text-center py-8">
-                <Sparkles className={`w-12 h-12 mx-auto mb-3 ${themeConfig.primary.replace('bg-', 'text-')} opacity-70`} />
-                <p className={`text-sm font-semibold ${themeConfig.text} mb-1`}>You're all caught up! 🎉</p>
-                <p className={`text-xs ${themeConfig.textSecondary}`}>No pending tasks at the moment</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Today's Schedule */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className={`lg:col-span-2 ${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Calendar className={`w-5 h-5 ${themeConfig.primary.replace('bg-', 'text-')}`} />
+                <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text}`}>Today's Schedule</h2>
               </div>
-            ) : (
-              upcomingTasks.map((task, index) => (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className={`p-3 ${themeConfig.background} rounded-lg`}
-                >
-                  <h3 className={`font-medium ${themeConfig.text} text-xs md:text-sm mb-1`}>
-                    {task.title}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs ${themeConfig.textSecondary}`}>
-                      {task.category}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' :
-                      task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                      }`}>
-                      {task.priority}
-                    </span>
+
+              <div className="space-y-3">
+                {todayClasses.length === 0 ? (
+                  <div className="relative text-center py-12 px-6">
+                    {/* Glassmorphism background */}
+                    <div className={`absolute inset-0 rounded-xl border ${theme === 'dark'
+                      ? 'bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm border-gray-700/50'
+                      : 'bg-gradient-to-br from-blue-50/50 to-purple-50/50 backdrop-blur-sm border-gray-200/50'
+                      }`} />
+
+                    {/* Content */}
+                    <div className="relative z-10">
+                      {/* Simple Coffee Cup Icon */}
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                        className="mb-6 relative inline-block p-6 rounded-full bg-blue-50 dark:bg-blue-900/20"
+                      >
+                        <div className={`absolute inset-0 ${themeConfig.primary.replace('bg-', 'bg-')} opacity-20 blur-xl rounded-full`} />
+                        <div className="relative z-10">
+                          <svg className={`w-12 h-12 ${themeConfig.primary.replace('bg-', 'text-')}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                            <line x1="6" y1="1" x2="6" y2="4" />
+                            <line x1="10" y1="1" x2="10" y2="4" />
+                            <line x1="14" y1="1" x2="14" y2="4" />
+                          </svg>
+                        </div>
+                      </motion.div>
+
+                      {/* Main heading */}
+                      <motion.h3
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className={`text-xl font-bold ${themeConfig.text} mb-2`}
+                      >
+                        All Clear for Today! ✨
+                      </motion.h3>
+
+                      {/* Sub-text */}
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className={`text-sm ${themeConfig.textSecondary} mb-6 max-w-md mx-auto`}
+                      >
+                        No classes scheduled. It's a perfect time to crush your personal goals.
+                      </motion.p>
+
+                      {/* Theme-based button */}
+                      <Link to="/timetable">
+                        <motion.button
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 mx-auto transition-all duration-200
+                            ${theme === 'dark'
+                              ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
+                              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            } shadow-sm`}
+                        >
+                          <Plus className="w-5 h-5" />
+                          <span>Schedule Now</span>
+                        </motion.button>
+                      </Link>
+                    </div>
                   </div>
-                </motion.div>
-              ))
-            )}
+                ) : (
+                  todayClasses.map((item, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className={`flex items-center gap-3 md:gap-4 p-3 ${themeConfig.background} rounded-lg`}
+                    >
+                      <div className={`text-xs md:text-sm font-medium ${themeConfig.textSecondary} w-10 md:w-12`}>
+                        {item.time}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`font-medium ${themeConfig.text} text-sm md:text-base`}>{item.subject}</h3>
+                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${item.color}`}>
+                          {item.type}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+
+            {/* Upcoming Tasks */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <AlertCircle className={`w-5 h-5 ${themeConfig.secondary.replace('bg-', 'text-')}`} />
+                <h2 className={`text-base md:text-lg font-semibold ${themeConfig.text}`}>Upcoming Tasks</h2>
+              </div>
+
+              <div className="space-y-3">
+                {upcomingTasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Sparkles className={`w-12 h-12 mx-auto mb-6 ${themeConfig.primary.replace('bg-', 'text-')} opacity-70`} />
+                    <p className={`text-sm font-semibold ${themeConfig.text} mb-1`}>You're all caught up! 🎉</p>
+                    <p className={`text-xs ${themeConfig.textSecondary}`}>No pending tasks at the moment</p>
+                  </div>
+                ) : (
+                  upcomingTasks.map((task, index) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className={`p-3 ${themeConfig.background} rounded-lg`}
+                    >
+                      <h3 className={`font-medium ${themeConfig.text} text-xs md:text-sm mb-1`}>
+                        {task.title}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs ${themeConfig.textSecondary}`}>
+                          {task.category}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' :
+                          task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' :
+                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                          }`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
-      <div className="h-32 md:h-0"></div>
     </div>
   );
 }

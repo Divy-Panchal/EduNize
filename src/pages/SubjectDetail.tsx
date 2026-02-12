@@ -514,7 +514,7 @@ export function SubjectDetail() {
                         </div>
                     </motion.button>
                 </motion.div>
-            </div >
+            </div>
 
 
 
@@ -564,109 +564,8 @@ export function SubjectDetail() {
                         </motion.div>
                     )
                 }
-            </AnimatePresence >
-
-            {/* Add Resource Modal */}
-            <AnimatePresence>
-                {
-                    showResourceModal && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                            onClick={() => setShowResourceModal(false)}
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className={`${themeConfig.card} rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${themeConfig.text === 'text-white' ? 'border-gray-700' : 'border-gray-200'} `}
-                            >
-                                <h2 className={`text-2xl font-bold ${themeConfig.text} mb-4`}>Add Resource</h2>
-
-                                <div className="mb-4">
-                                    <label className={`block text-sm font-semibold ${themeConfig.text} mb-2`}>Type</label>
-                                    <div className="flex gap-2">
-                                        {(['link', 'video', 'file'] as const).map((type) => (
-                                            <button
-                                                key={type}
-                                                onClick={() => setResourceType(type)}
-                                                className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${resourceType === type
-                                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                                                    : `${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'}`
-                                                    } `}
-                                            >
-                                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {resourceType === 'file' ? (
-                                    <>
-                                        <input
-                                            type="text"
-                                            value={resourceTitle}
-                                            onChange={(e) => setResourceTitle(e.target.value)}
-                                            placeholder="Resource title (optional)"
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                        />
-                                        <div className={`w-full px-4 py-3 rounded-xl border-2 border-dashed ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:border-blue-400 transition-all mb-3`}>
-                                            <input
-                                                type="file"
-                                                onChange={handleFileSelect}
-                                                className="w-full"
-                                                id="file-upload"
-                                            />
-                                            <label htmlFor="file-upload" className={`cursor-pointer ${themeConfig.text} `}>
-                                                {selectedFile ? `Selected: ${selectedFile.name} ` : 'Choose a file'}
-                                            </label>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <input
-                                            type="text"
-                                            value={resourceTitle}
-                                            onChange={(e) => setResourceTitle(e.target.value)}
-                                            placeholder="Resource title"
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                            autoFocus
-                                        />
-                                        <input
-                                            type="text"
-                                            value={resourceUrl}
-                                            onChange={(e) => setResourceUrl(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleAddResource()}
-                                            placeholder="URL (e.g., https://example.com)"
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${themeConfig.background} ${themeConfig.text} ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors mb-3`}
-                                        />
-                                    </>
-                                )}
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setShowResourceModal(false)}
-                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold ${themeConfig.background} ${themeConfig.text} border-2 ${themeConfig.text === 'text-white' ? 'border-gray-600' : 'border-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleAddResource}
-                                        disabled={isUploading}
-                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        {isUploading ? 'Adding...' : 'Add Resource'}
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )
-                }
-            </AnimatePresence >
-        </div >
+            </AnimatePresence>
+        </div>
     );
 }
 
