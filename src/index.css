@@ -3,6 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Important for app-like scrolling */
+  }
+  #root {
+    height: 100%;
+  }
+}
+
+@layer base {
   :root {
     --chart-1: 34, 98%, 60%;
     --chart-2: 262, 83%, 67%;

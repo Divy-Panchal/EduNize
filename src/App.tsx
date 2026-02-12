@@ -212,7 +212,7 @@ function AppContent() {
   }
 
   return (
-    <div className={`min-h-screen ${themeConfig.background} ${themeConfig.text} transition-colors duration-300`}>
+    <div className={`h-screen w-full ${themeConfig.background} ${themeConfig.text} transition-colors duration-300 overflow-hidden`}>
       <DarkModeTransition
         isTransitioning={isTransitioning}
         transitionTheme={transitionTheme}
@@ -244,9 +244,9 @@ function AppContent() {
       </AnimatePresence>
 
       {!showOnboarding && !showProfileSetup && (
-        <div className="md:flex-row">
+        <div className="flex flex-col md:flex-row h-screen overflow-hidden fixed inset-0 w-full">
           <Navigation />
-          <main className="flex-1 p-4 md:p-6 pb-52 safe-area-top safe-area-bottom">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-32 md:pb-6 safe-area-top safe-area-bottom scroll-smooth relative" id="main-scroll-container">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -255,7 +255,7 @@ function AppContent() {
                 exit="out"
                 variants={pageVariants}
                 transition={pageTransition}
-                className="min-h-screen"
+                className="min-h-full"
               >
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
