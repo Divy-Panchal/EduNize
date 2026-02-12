@@ -252,7 +252,8 @@ export function PomodoroTimer() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className={`text-center sticky top-0 z-50 py-4 -mx-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+          }`}
       >
         <h1 className={`text-4xl md:text-5xl font-bold ${themeConfig.text} mb-2`}>
           Pomodoro Timer

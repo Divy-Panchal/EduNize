@@ -211,7 +211,7 @@ const SectionCard = React.memo(({
 SectionCard.displayName = 'SectionCard';
 
 export function Profile() {
-    const { themeConfig } = useTheme();
+    const { themeConfig, theme } = useTheme();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isFlipped, setIsFlipped] = useState(false);
@@ -576,7 +576,8 @@ export function Profile() {
     return (
         <div className="space-y-6 pb-24 md:pb-32">
             <motion.div
-                className="flex justify-between items-center"
+                className={`flex justify-between items-center sticky top-0 z-50 py-4 -mx-4 px-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+                    }`}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}

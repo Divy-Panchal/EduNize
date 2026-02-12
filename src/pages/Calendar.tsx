@@ -6,7 +6,7 @@ import { useTask } from '../context/TaskContext';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
 
 export function Calendar() {
-    const { themeConfig } = useTheme();
+    const { themeConfig, theme } = useTheme();
     const { tasks } = useTask();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -35,7 +35,8 @@ export function Calendar() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-50 py-4 -mx-4 px-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+                    }`}
             >
                 <div>
                     <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text}`}>Calendar</h1>
@@ -126,12 +127,12 @@ export function Calendar() {
                                             <div
                                                 key={i}
                                                 className={`w-1 h-1 rounded-full ${isSelected || isToday
-                                                        ? 'bg-white'
-                                                        : task.priority === 'high'
-                                                            ? 'bg-red-500'
-                                                            : task.priority === 'medium'
-                                                                ? 'bg-yellow-500'
-                                                                : 'bg-green-500'
+                                                    ? 'bg-white'
+                                                    : task.priority === 'high'
+                                                        ? 'bg-red-500'
+                                                        : task.priority === 'medium'
+                                                            ? 'bg-yellow-500'
+                                                            : 'bg-green-500'
                                                     }`}
                                             />
                                         ))}
@@ -175,10 +176,10 @@ export function Calendar() {
                                 <div className="flex items-start justify-between mb-2">
                                     <h4 className={`font-semibold ${themeConfig.text}`}>{task.title}</h4>
                                     <span className={`text-xs px-2 py-1 rounded-full ${task.priority === 'high'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
-                                            : task.priority === 'medium'
-                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
-                                                : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+                                        : task.priority === 'medium'
+                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
+                                            : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
                                         }`}>
                                         {task.priority}
                                     </span>

@@ -18,7 +18,7 @@ import { Grade, GRADE_CATEGORIES, getGradeBgColor, getGradeColor } from '../type
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export function Grades() {
-    const { themeConfig } = useTheme();
+    const { themeConfig, theme } = useTheme();
     const { grades, addGrade, deleteGrade, getGradeStats, gradingSystem } = useGrade();
     const { subjects } = useSubject();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -158,7 +158,8 @@ export function Grades() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex justify-between items-start"
+                className={`flex justify-between items-start sticky top-0 z-50 py-4 -mx-4 px-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+                    }`}
             >
                 <div>
                     <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
@@ -272,7 +273,7 @@ export function Grades() {
                                 <span className={`text-sm ${themeConfig.textSecondary}`}>Trend</span>
                             </div>
                             <span className={`text-lg font-semibold ${stats.trend === 'improving' ? 'text-green-500' :
-                                    stats.trend === 'declining' ? 'text-red-500' : 'text-gray-500'
+                                stats.trend === 'declining' ? 'text-red-500' : 'text-gray-500'
                                 }`}>
                                 {stats.trend.charAt(0).toUpperCase() + stats.trend.slice(1)}
                             </span>
@@ -685,8 +686,8 @@ export function Grades() {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, category: cat.value as Grade['category'] })}
                                                     className={`px-4 py-2 rounded-lg border-2 transition-all ${formData.category === cat.value
-                                                            ? `${cat.color} text-white border-transparent`
-                                                            : `${themeConfig.background} ${themeConfig.text} border-gray-300 dark:border-gray-600`
+                                                        ? `${cat.color} text-white border-transparent`
+                                                        : `${themeConfig.background} ${themeConfig.text} border-gray-300 dark:border-gray-600`
                                                         }`}
                                                 >
                                                     {cat.label}

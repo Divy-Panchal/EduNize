@@ -12,7 +12,7 @@ import { FileOpener } from '@capacitor-community/file-opener';
 export function SubjectDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { themeConfig } = useTheme();
+    const { themeConfig, theme } = useTheme();
     const { subjects, addTopic, deleteTopic, toggleTopic, addResource, deleteResource } = useSubject();
 
     const subject = subjects.find(s => s.id === id);
@@ -284,7 +284,8 @@ export function SubjectDetail() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="px-4"
+                className={`px-4 sticky top-0 z-50 py-2 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+                    }`}
             >
                 <button
                     onClick={() => navigate('/subjects')}

@@ -8,7 +8,7 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, startOfMonth, endOfMo
 import { AddTaskModal } from '../components/AddTaskModal';
 
 export function Timetable() {
-  const { themeConfig } = useTheme();
+  const { themeConfig, theme } = useTheme();
   const { classes, addClass, deleteClass } = useTimetable();
   const { tasks } = useTask();
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -63,7 +63,8 @@ export function Timetable() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-50 py-4 -mx-4 px-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+          }`}
       >
         <div>
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text}`}>Timetable</h1>

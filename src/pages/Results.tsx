@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Award, Target, BookOpen } from 'lucide-react';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell 
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts';
 import { useTheme } from '../context/ThemeContext';
 
@@ -50,7 +50,8 @@ export function Results() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className={`text-center sticky top-0 z-50 py-4 -mx-4 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
+          }`}
       >
         <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>Academic Results</h1>
         <p className={themeConfig.textSecondary}>
@@ -106,9 +107,9 @@ export function Results() {
               <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#E5E7EB'} />
               <XAxis dataKey="month" stroke={theme === 'dark' ? '#9CA3AF' : '#6B7280'} />
               <YAxis stroke={theme === 'dark' ? '#9CA3AF' : '#6B7280'} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
                   border: `1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   color: theme === 'dark' ? '#F9FAFB' : '#111827'
@@ -131,9 +132,9 @@ export function Results() {
               <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#E5E7EB'} />
               <XAxis dataKey="subject" stroke={theme === 'dark' ? '#9CA3AF' : '#6B7280'} tick={{ fontSize: 12 }} />
               <YAxis stroke={theme === 'dark' ? '#9CA3AF' : '#6B7280'} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
                   border: `1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   color: theme === 'dark' ? '#F9FAFB' : '#111827'
@@ -164,9 +165,9 @@ export function Results() {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
                   border: `1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   color: theme === 'dark' ? '#F9FAFB' : '#111827'
@@ -174,7 +175,7 @@ export function Results() {
               />
             </PieChart>
           </ResponsiveContainer>
-          
+
           <div className="space-y-3">
             {studyTimeData.map((item, index) => (
               <motion.div

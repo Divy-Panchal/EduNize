@@ -241,7 +241,7 @@ export function EduAI() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700 mb-4`}
+                    className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700 mb-4 sticky top-4 z-50`}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
