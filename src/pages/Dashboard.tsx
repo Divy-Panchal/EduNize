@@ -179,9 +179,11 @@ export function Dashboard() {
               {userData.fullName ? "Your study overview" : "Plan your day"}
             </p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <BackButton className="md:hidden flex-shrink-0" />
-            <DashboardProfile />
+          <div className="flex items-center gap-2 sm:gap-3 flex-none ml-auto">
+            <BackButton className="md:hidden flex-none px-2 py-1.5" />
+            <div className="flex-none">
+              <DashboardProfile />
+            </div>
           </div>
         </motion.div>
       </div>
