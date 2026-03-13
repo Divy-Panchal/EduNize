@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     TrendingUp,
@@ -15,11 +16,12 @@ import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
 import { useGrade } from '../context/GradeContext';
 import { useSubject } from '../context/SubjectContext';
+import { BackButton } from '../components/BackButton';
 import { Grade, GRADE_CATEGORIES, getGradeBgColor, getGradeColor } from '../types/grade';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export function Grades() {
-    const { themeConfig, theme } = useTheme();
+    const { themeConfig } = useTheme();
     const { grades, addGrade, deleteGrade, getGradeStats, gradingSystem } = useGrade();
     const { subjects } = useSubject();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -154,13 +156,19 @@ export function Grades() {
     }, [showAddModal]);
 
     return (
-        <div className="h-full flex flex-col overflow-y-auto">
-            <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
-                {/* Header */}
+        <div className="h-full flex flex-col overflow-y-auto pb-32">
+            <Helmet>
+                <title>Grade Tracker - Monitor Your Academic Success - Edunize.com</title>
+                <meta name="description" content="Keep track of your grades, calculate averages, and monitor your academic progress across all subjects with the Edunize Grade Tracker." />
+            </Helmet>
+            <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+                <div className="flex items-center gap-4 mb-4">
+                    <BackButton />
+                </div>
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex justify-between items-start`}
+                    className={`flex flex-col sm:flex-row items-center justify-between gap-4`}
                 >
                     <div>
                         <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>

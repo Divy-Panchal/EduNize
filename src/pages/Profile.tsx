@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../components/BackButton';
 import toast from 'react-hot-toast';
 import {
     Edit, Save, BookOpen, Award, Upload, X,
@@ -211,7 +213,7 @@ const SectionCard = React.memo(({
 SectionCard.displayName = 'SectionCard';
 
 export function Profile() {
-    const { themeConfig, theme } = useTheme();
+    const { themeConfig } = useTheme();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isFlipped, setIsFlipped] = useState(false);
@@ -574,8 +576,15 @@ export function Profile() {
 
 
     return (
-        <div className="h-full flex flex-col overflow-y-auto">
-            <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+        <div className="h-full flex flex-col overflow-y-auto pb-32">
+            <Helmet>
+                <title>User Profile - Edunize.com</title>
+                <meta name="description" content="Manage your personal profile, study preferences, and account settings on Edunize." />
+            </Helmet>
+            <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+                <div className="mb-4">
+                    <BackButton />
+                </div>
                 <motion.div
                     className={`flex justify-between items-center`}
                     initial={{ opacity: 0, y: -20 }}
@@ -604,7 +613,7 @@ export function Profile() {
                 </motion.div>
             </div>
 
-            <div className="flex-1 p-4 md:p-6 pt-2 pb-24 md:pb-6">
+            <div className="flex-1 p-4 md:p-6 pt-2 pb-32 md:pb-6">
                 <div className="space-y-6">
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

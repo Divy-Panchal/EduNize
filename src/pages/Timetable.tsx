@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, BookOpen, X, Calendar, Grid3x3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
+import { BackButton } from '../components/BackButton';
 import { useTimetable } from '../context/TimetableContext';
 import { useTask } from '../context/TaskContext';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, addMonths, subMonths } from 'date-fns';
@@ -82,8 +83,11 @@ export function Timetable() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
-      <div className="sticky top-0 z-50 p-4 md:p-6 pb-4 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+        <div className="flex items-center gap-4 mb-4">
+            <BackButton />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,7 +117,7 @@ export function Timetable() {
         </motion.div>
       </div>
 
-      <div className="flex-1 p-4 md:p-6 pt-2 pb-24 md:pb-6 scroll-smooth">
+      <div className="flex-1 p-4 md:p-6 pt-2 pb-32 md:pb-6 scroll-smooth">
         {/* Week Navigation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

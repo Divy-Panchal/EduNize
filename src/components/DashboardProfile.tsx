@@ -70,15 +70,15 @@ export function DashboardProfile() {
   return (
     <div className="relative" ref={dropdownRef}>
       <motion.div
-        className="flex items-center gap-3 cursor-pointer p-2 rounded-lg"
+        className="flex items-center gap-3 cursor-pointer p-1 sm:p-2 rounded-lg flex-shrink-0"
         whileHover={{ backgroundColor: themeConfig.hover, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => setDropdownOpen(!isDropdownOpen)}
       >
         <img
-          src={userData.profilePhoto}
+          src={userData.profilePhoto || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23e0e0e0"/%3E%3Ccircle cx="50" cy="40" r="18" fill="%23999"/%3E%3Cpath d="M 20 85 Q 20 60 50 60 Q 80 60 80 85 Z" fill="%23999"/%3E%3C/svg%3E'}
           alt="Profile"
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-blue-400"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-blue-400 flex-shrink-0"
         />
         <div className='hidden md:block'>
           <h4 className={`font-semibold ${themeConfig.text}`}>{userData.fullName}</h4>

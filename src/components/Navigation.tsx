@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, CheckSquare, User, CalendarDays, Sparkles } from 'lucide-react';
@@ -14,6 +15,41 @@ const navigationItems = [
 export function Navigation() {
   const location = useLocation();
   const { themeConfig } = useTheme();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    // Only apply on mobile devices
+    if (window.innerWidth >= 768) return;
+
+    let maxHeight = window.innerHeight;
+
+    const handleResize = () => {
+      const currentHeight = window.visualViewport?.height || window.innerHeight;
+      
+      // Update max height if the new height is larger (e.g., orientation change)
+      if (currentHeight > maxHeight) {
+        maxHeight = currentHeight;
+      }
+
+      // If the current height is significantly smaller than the max height (e.g., by 150px)
+      // it means the on-screen keyboard is visible.
+      if (maxHeight - currentHeight > 150) {
+        setIsKeyboardVisible(true);
+      } else {
+        setIsKeyboardVisible(false);
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  if (isKeyboardVisible) return null;
 
   return (
     <nav className="fixed bottom-12 sm:bottom-6 left-0 right-0 flex justify-center z-[9999] px-3 sm:px-4 md:px-6 safe-area-bottom">

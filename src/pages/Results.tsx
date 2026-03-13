@@ -1,4 +1,4 @@
-import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { TrendingUp, Award, Target, BookOpen } from 'lucide-react';
 import {
@@ -6,6 +6,7 @@ import {
   ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts';
 import { useTheme } from '../context/ThemeContext';
+import { BackButton } from '../components/BackButton';
 
 const gradeData = [
   { subject: 'Mathematics', grade: 92 },
@@ -46,8 +47,15 @@ export function Results() {
   const overallGrade = gradeData.reduce((sum, item) => sum + item.grade, 0) / gradeData.length;
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-none p-4 pb-2 pt-8 md:pt-12 z-10 bg-inherit">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Academic Results - Edunize.com</title>
+        <meta name="description" content="Track your academic performance, view grade distributions, and analyze your progress with Edunize." />
+      </Helmet>
+      <div className={`p-4 md:p-6 pb-32 pt-8 md:pt-12 z-10 bg-inherit w-full max-w-7xl mx-auto`}>
+        <div className="flex items-center gap-4 mb-4">
+            <BackButton />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -60,7 +68,7 @@ export function Results() {
         </motion.div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 pb-20 scroll-smooth">
+      <div className="flex-1 overflow-y-auto p-4 pb-32 scroll-smooth">
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             {[

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 type Theme = 'default' | 'dark' | 'purple' | 'green';
 
 interface ThemeContextType {
@@ -19,6 +20,8 @@ const themes = {
     secondary: 'bg-purple-600',
     accent: 'bg-green-600',
     background: 'bg-gradient-to-br from-gray-50 to-blue-50',
+    headerBg: 'bg-gray-50/95',
+    headerBorder: 'border-gray-100',
     card: 'bg-white',
     text: 'text-gray-900',
     textSecondary: 'text-gray-600',
@@ -29,6 +32,8 @@ const themes = {
     secondary: 'bg-purple-500',
     accent: 'bg-green-500',
     background: 'bg-gradient-to-br from-gray-900 to-gray-800',
+    headerBg: 'bg-gray-900/95',
+    headerBorder: 'border-gray-800',
     card: 'bg-gray-800',
     text: 'text-white',
     textSecondary: 'text-gray-300',
@@ -39,6 +44,8 @@ const themes = {
     secondary: 'bg-indigo-600',
     accent: 'bg-pink-600',
     background: 'bg-gradient-to-br from-purple-50 to-pink-50',
+    headerBg: 'bg-purple-50/95',
+    headerBorder: 'border-purple-100',
     card: 'bg-white',
     text: 'text-gray-900',
     textSecondary: 'text-gray-600',
@@ -49,10 +56,30 @@ const themes = {
     secondary: 'bg-teal-600',
     accent: 'bg-emerald-600',
     background: 'bg-gradient-to-br from-green-50 to-emerald-50',
+    headerBg: 'bg-green-50/95',
+    headerBorder: 'border-green-100',
     card: 'bg-white',
     text: 'text-gray-900',
     textSecondary: 'text-gray-600',
   },
+};
+
+const updateStatusBar = async (currentTheme: Theme) => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const isDark = currentTheme === 'dark';
+      await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+
+      let bgColor = '#f9fafb'; // default light (gray-50)
+      if (currentTheme === 'dark') bgColor = '#111827'; // gray-900
+      else if (currentTheme === 'purple') bgColor = '#faf5ff'; // purple-50
+      else if (currentTheme === 'green') bgColor = '#f0fdf4'; // green-50
+
+      await StatusBar.setBackgroundColor({ color: bgColor });
+    } catch (e) {
+      console.error('Failed to set status bar theme', e);
+    }
+  }
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -65,6 +92,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme && themes[savedTheme]) {
       setTheme(savedTheme);
       setTransitionTheme(savedTheme);
+      updateStatusBar(savedTheme);
+    } else {
+      updateStatusBar('default');
     }
   }, []);
 
@@ -79,6 +109,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => {
         setTheme(newTheme);
         localStorage.setItem('eduorganize-theme', newTheme);
+        updateStatusBar(newTheme);
       }, 200);
 
       // Faster completion - reduced from 1200ms to 400ms

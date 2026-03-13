@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, X, Calculator, FlaskConical, Globe, BookText, Palette, Dumbbell, Music, Code, Languages, TrendingUp, Microscope, Atom, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useSubject } from '../context/SubjectContext';
+import { BackButton } from '../components/BackButton';
 
 export function Subjects() {
   const { themeConfig, theme } = useTheme();
@@ -118,17 +120,23 @@ export function Subjects() {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Subjects - Edunize.com</title>
+        <meta name="description" content="Manage your academic subjects, track progress, and organize your study materials with Edunize." />
+      </Helmet>
       {/* Header */}
-      <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+      <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+        <div className="flex items-center justify-between mb-4">
+            <BackButton />
+            <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text}`}>Subjects</h1>
+            <div className="w-10 md:w-16" /> {/* Spacer to center title if needed or just left align */}
+        </div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+          className="text-center transition-colors duration-200"
         >
-          <h1 className={`text-3xl font-bold ${themeConfig.text} mb-2`}>
-            My Subjects
-          </h1>
           <p className={`${themeConfig.textSecondary} text-sm`}>
             Add and manage your subjects
           </p>

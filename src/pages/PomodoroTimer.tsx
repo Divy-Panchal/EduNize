@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee, BookOpen, VolumeX, TrendingUp, Target, Clock, Edit3 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { usePomodoro } from '../context/PomodoroContext';
+import { BackButton } from '../components/BackButton';
 
 const AnimatedDigit = ({ digit }: { digit: number }) => {
   const digitHeight = 80;
@@ -247,8 +249,15 @@ export function PomodoroTimer() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto h-full flex flex-col overflow-y-auto">
-      <div className="sticky top-0 z-50 p-4 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+    <div className="max-w-7xl mx-auto h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Pomodoro Timer - Boost Productivity - Edunize.com</title>
+        <meta name="description" content="Use our Pomodoro timer to manage your study sessions, improve focus, and prevent burnout with structured work and break intervals on Edunize." />
+      </Helmet>
+      <div className={`sticky top-0 z-50 p-4 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+        <div className="mb-4">
+            <BackButton />
+        </div>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import {
   BookOpen,
@@ -12,7 +13,8 @@ import {
   Zap,
   TrendingUp,
   Plus,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTask } from '../context/TaskContext';
@@ -23,6 +25,7 @@ import { useDailyStats } from '../context/DailyStatsContext';
 import { DashboardProfile } from '../components/DashboardProfile';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { BackButton } from '../components/BackButton';
 
 const getStoredUserData = (userId: string | undefined) => {
   const defaultData = {
@@ -81,7 +84,7 @@ export function Dashboard() {
       setTimeout(() => {
         addNotification({
           type: 'task',
-          title: 'Welcome to EduNize!',
+          title: 'Welcome to Edunize!',
           message: 'Start organizing your tasks and boost your productivity.',
         });
 
@@ -156,23 +159,28 @@ export function Dashboard() {
   const todayClasses = getTodayClasses();
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
-      <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/95 dark:bg-gray-900/95 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Dashboard - Edunize.com</title>
+        <meta name="description" content="View your academic overview, upcoming tasks, and today's schedule on your Edunize dashboard." />
+      </Helmet>
+      <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} transition-colors duration-200 border-b ${themeConfig.headerBorder}`}>
         <motion.div
           className="flex justify-between items-start"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div>
-            <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
-              {userData.fullName ? `Welcome back, ${userData.fullName}! 👋` : 'Welcome back! 👋'}
+          <div className="flex-1 min-w-0 mr-2 md:mr-4">
+            <h1 className={`text-xl md:text-3xl font-bold ${themeConfig.text} mb-1 md:mb-2 truncate`}>
+              {userData.fullName ? `Hi, ${userData.fullName}! 👋` : 'Welcome! 👋'}
             </h1>
-            <p className={themeConfig.textSecondary}>
-              Here's what's happening with your studies today
+            <p className={`${themeConfig.textSecondary} text-xs md:text-base truncate`}>
+              {userData.fullName ? "Your study overview" : "Plan your day"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <BackButton className="md:hidden flex-shrink-0" />
             <DashboardProfile />
           </div>
         </motion.div>
@@ -180,6 +188,39 @@ export function Dashboard() {
 
       <div className="flex-1 p-4 md:p-6 pt-2 pb-32 md:pb-6">
         <div className="space-y-6">
+          {/* App Download CTA Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-xl text-white"
+          >
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
+                  <Zap className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Install Edunize Mobile 📱</h3>
+                  <p className="text-blue-100 text-sm">Official store installation for automatic updates.</p>
+                </div>
+              </div>
+              <a
+                href="https://edunize.en.aptoide.com/app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full md:w-auto px-8 py-4 bg-white text-blue-600 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 text-center flex items-center justify-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Get it on Aptoide
+              </a>
+            </div>
+
+            {/* Background design elements */}
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl" />
+          </motion.div>
+
           {/* Quick Actions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

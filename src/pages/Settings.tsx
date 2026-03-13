@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, Bell, User, Shield, HelpCircle, LogOut, Download, Trash2, AlertTriangle, Eye, EyeOff, GraduationCap, School } from 'lucide-react';
+import { Palette, Bell, User, LogOut, Trash2, AlertTriangle, Eye, EyeOff, GraduationCap, School } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useGrade } from '../context/GradeContext';
+import { BackButton } from '../components/BackButton';
 import toast from 'react-hot-toast';
 
 export function Settings() {
   const { theme, setTheme, themeConfig } = useTheme();
-  const { signOut, deleteAccount, user } = useAuth();
+  const { signOut, deleteAccount } = useAuth();
   const { gradingSystem, setGradingSystem } = useGrade();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -113,15 +115,23 @@ export function Settings() {
   ];
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-none p-4 md:p-6 pb-2 pt-8 md:pt-12 z-10 bg-inherit">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Settings - Personalize Your Experience - Edunize.com</title>
+        <meta name="description" content="Customize your Edunize experience. Manage notification settings, app themes, and account security to suit your study style." />
+      </Helmet>
+      <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+        <div className="flex items-center gap-4 mb-4">
+            <BackButton />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          className="text-center"
         >
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>Settings</h1>
           <p className={themeConfig.textSecondary}>
-            Customize your EduOrganize experience
+            Customize your Edunize.com experience
           </p>
         </motion.div>
       </div>

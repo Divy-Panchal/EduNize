@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { BackButton } from '../components/BackButton';
 import { useTheme } from '../context/ThemeContext';
 import { useTask } from '../context/TaskContext';
 import { useTimetable } from '../context/TimetableContext';
@@ -44,9 +46,16 @@ export function Calendar() {
     const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="flex-none p-4 md:p-6 pb-2 pt-8 md:pt-12 z-10 bg-inherit">
+        <div className="h-full flex flex-col overflow-y-auto pb-32">
+            <Helmet>
+                <title>Study Calendar - Organize Your Academic Life - Edunize.com</title>
+                <meta name="description" content="Manage your study schedule, track task deadlines, and view your academic commitments in a daily, weekly, or monthly calendar view on Edunize." />
+            </Helmet>
+            <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
                 {/* Header */}
+                <div className="mb-4">
+                    <BackButton />
+                </div>
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -61,7 +70,7 @@ export function Calendar() {
                 </motion.div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-2 pb-24 md:pb-6 scroll-smooth">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-2 pb-32 md:pb-6 scroll-smooth">
                 <div className="space-y-6">
                     {/* Calendar Card */}
                     <motion.div

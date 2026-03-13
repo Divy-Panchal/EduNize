@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, RotateCcw, Loader2, History, Menu, Paperclip, X, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +9,7 @@ import { validateFile, formatFileSize } from '../types/file';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { HistorySidebar } from '../components/ChatHistory/HistorySidebar';
+import { BackButton } from '../components/BackButton';
 import { v4 as uuidv4 } from 'uuid';
 
 const SUGGESTED_PROMPTS = [
@@ -237,14 +239,20 @@ export function EduAI() {
 
             {/* Main Chat Area */}
             <div className="flex flex-col flex-1 min-w-0 h-full">
+                <Helmet>
+                    <title>EduAI - Your AI Study Companion - Edunize.com</title>
+                    <meta name="description" content="Get personalized study help, ask academic questions, and interact with EduAI, your advanced AI study companion on Edunize." />
+                </Helmet>
                 {/* Header */}
-                <div className="sticky top-0 z-50 pb-4 pt-8 md:pt-12 bg-gray-50/95 dark:bg-gray-900/95 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+                <div className={`sticky top-0 z-50 pb-4 pt-8 md:pt-12 ${themeConfig.headerBg} transition-colors duration-200 border-b ${themeConfig.headerBorder}`}>
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`${themeConfig.card} p-4 md:p-6 rounded-xl shadow-sm border dark:border-gray-700`}
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-4">
+                            <BackButton to="/" />
+                            <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 {/* History Toggle Button */}
                                 <motion.button
@@ -302,13 +310,14 @@ export function EduAI() {
                                     </>
                                 )}
                             </div>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
 
                 {/* Chat Area */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-20 md:mb-6`}>
-                    <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-6">
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-52 md:mb-6`}>
+                    <div className="flex-1 overflow-y-auto p-8 md:p-12 pb-52 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (
                                 <motion.div
@@ -339,11 +348,13 @@ export function EduAI() {
                                         Your AI study companion. How can I help you learn today?
                                     </p>
 
-                                    <div className="w-full max-w-2xl">
-                                        <p className={`text-sm font-semibold ${themeConfig.text} mb-4 uppercase tracking-wide`}>
+                                    <div className="w-full max-w-3xl mt-6 pb-4">
+                                        <p className={`text-xs font-bold ${themeConfig.textSecondary} mb-4 uppercase tracking-wider text-center flex items-center justify-center gap-2`}>
+                                            <span className="h-px w-8 bg-gray-300 dark:bg-gray-700 rounded"></span>
                                             Suggested Prompts
+                                            <span className="h-px w-8 bg-gray-300 dark:bg-gray-700 rounded"></span>
                                         </p>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 px-2">
                                             {SUGGESTED_PROMPTS.map((prompt, index) => (
                                                 <motion.button
                                                     key={index}
@@ -353,15 +364,19 @@ export function EduAI() {
                                                     whileHover={{ scale: 1.02, y: -2 }}
                                                     whileTap={{ scale: 0.98 }}
                                                     onClick={() => handlePromptClick(prompt.text)}
-                                                    className={`flex items-center gap-3 p-4 rounded-xl text-left transition-all ${theme === 'dark'
-                                                        ? 'bg-gray-800 hover:bg-gray-700 border border-gray-700'
-                                                        : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                                                    className={`flex items-start gap-3 md:gap-4 p-4 rounded-2xl text-left transition-all duration-300 group ${theme === 'dark'
+                                                        ? 'bg-gray-800/60 hover:bg-gray-800 border border-gray-700/80 hover:border-blue-500/50 hover:shadow-[0_4px_20px_rgba(59,130,246,0.15)] text-gray-300 hover:text-white'
+                                                        : 'bg-white hover:bg-blue-50/50 border border-gray-200/80 hover:border-blue-400/50 hover:shadow-[0_4px_20px_rgba(59,130,246,0.1)] text-gray-600 hover:text-gray-900'
                                                         }`}
                                                 >
-                                                    <span className="text-2xl">{prompt.icon}</span>
-                                                    <span className={`text-sm font-medium ${themeConfig.text}`}>
-                                                        {prompt.text}
-                                                    </span>
+                                                    <div className={`p-2.5 rounded-xl transition-colors ${theme === 'dark' ? 'bg-gray-700/80 group-hover:bg-blue-500/20' : 'bg-gray-100 group-hover:bg-blue-100/80 text-blue-600'}`}>
+                                                        <span className="text-xl md:text-2xl leading-none block grayscale-[50%] group-hover:grayscale-0 transition-all">{prompt.icon}</span>
+                                                    </div>
+                                                    <div className="flex-1 mt-1">
+                                                        <span className={`text-sm md:text-base font-medium transition-colors`}>
+                                                            {prompt.text}
+                                                        </span>
+                                                    </div>
                                                 </motion.button>
                                             ))}
                                         </div>
@@ -378,11 +393,11 @@ export function EduAI() {
                                             className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
                                         >
                                             <div
-                                                className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 ${message.role === 'user'
-                                                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                                                className={`max-w-[85%] md:max-w-[75%] p-4 md:p-5 ${message.role === 'user'
+                                                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-sm shadow-md'
                                                     : theme === 'dark'
-                                                        ? 'bg-gray-800 border border-gray-700'
-                                                        : 'bg-gray-100 border border-gray-200'
+                                                        ? 'bg-gray-800/90 backdrop-blur-sm border border-gray-700/80 rounded-2xl rounded-tl-sm shadow-sm'
+                                                        : 'bg-white border border-gray-200/80 rounded-2xl rounded-tl-sm shadow-sm'
                                                     }`}
                                             >
                                                 {message.role === 'assistant' && (
@@ -436,9 +451,9 @@ export function EduAI() {
                                             className="flex justify-start"
                                         >
                                             <div
-                                                className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 ${theme === 'dark'
-                                                    ? 'bg-gray-800 border border-gray-700'
-                                                    : 'bg-gray-100 border border-gray-200'
+                                                className={`max-w-[85%] md:max-w-[75%] p-4 md:p-5 ${theme === 'dark'
+                                                    ? 'bg-gray-800/90 backdrop-blur-sm border border-gray-700/80 rounded-2xl rounded-tl-sm shadow-sm'
+                                                    : 'bg-white border border-gray-200/80 rounded-2xl rounded-tl-sm shadow-sm'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-2">
@@ -476,95 +491,105 @@ export function EduAI() {
                     </div>
 
                     {/* Input Area */}
-                    <div className={`p-4 border-t sticky bottom-16 md:bottom-0 z-[60] bg-white dark:bg-gray-900 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                        {/* File Preview */}
-                        {uploadedFile && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className={`mb-3 flex items-center gap-2 p-3 rounded-lg ${theme === 'dark'
-                                    ? 'bg-gray-800 border border-gray-700'
-                                    : 'bg-gray-100 border border-gray-200'
-                                    }`}
-                            >
-                                <FileText className="w-4 h-4 text-blue-500" />
-                                <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-medium truncate ${themeConfig.text}`}>
-                                        {uploadedFile.name}
-                                    </p>
-                                    <p className={`text-xs ${themeConfig.textSecondary}`}>
-                                        {formatFileSize(uploadedFile.size)}
-                                    </p>
-                                </div>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={handleRemoveFile}
-                                    className="p-1 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
-                                    title="Remove file"
+                    <div className={`p-4 sticky bottom-44 md:bottom-0 z-[60] pb-6 bg-gradient-to-t ${theme === 'dark' ? 'from-gray-900 via-gray-900/95 to-transparent' : 'from-gray-50 via-gray-50/95 to-transparent'}`}>
+                        <div className="max-w-4xl mx-auto">
+                            {/* File Preview */}
+                            {uploadedFile && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className={`mb-4 flex items-center gap-3 p-3 rounded-xl shadow-sm ${theme === 'dark'
+                                        ? 'bg-gray-800 border border-gray-700/80'
+                                        : 'bg-white border border-gray-200/80'
+                                        }`}
                                 >
-                                    <X className="w-4 h-4" />
+                                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-50'} text-blue-500`}>
+                                        <FileText className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium truncate ${themeConfig.text}`}>
+                                            {uploadedFile.name}
+                                        </p>
+                                        <p className={`text-xs ${themeConfig.textSecondary} mt-0.5`}>
+                                            {formatFileSize(uploadedFile.size)}
+                                        </p>
+                                    </div>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={handleRemoveFile}
+                                        className={`p-1.5 rounded-lg text-red-500 transition-colors ${theme === 'dark' ? 'hover:bg-red-500/20' : 'hover:bg-red-50'}`}
+                                        title="Remove file"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </motion.button>
+                                </motion.div>
+                            )}
+
+                            {/* Hidden file input */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf,.txt,.md"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
+
+                            <div className={`flex items-end gap-2 p-2 rounded-[1.5rem] shadow-lg backdrop-blur-md transition-all border ${theme === 'dark'
+                                    ? 'bg-gray-800/90 border-gray-700 focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10'
+                                    : 'bg-white/95 border-gray-200/80 focus-within:border-blue-400/50 focus-within:ring-4 focus-within:ring-blue-400/10'
+                                }`}>
+                                {/* File upload button */}
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleFileButtonClick}
+                                    disabled={isLoading || isUploadingFile}
+                                    className={`p-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
+                                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                                        : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    title="Upload document"
+                                >
+                                    <Paperclip className="w-5 h-5 md:w-6 md:h-6" />
                                 </motion.button>
-                            </motion.div>
-                        )}
 
-                        {/* Hidden file input */}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".pdf,.txt,.md"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
+                                <div className="flex-1 relative">
+                                    <textarea
+                                        ref={textareaRef}
+                                        value={input}
+                                        onChange={handleInputChange}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="Ask EduAI anything..."
+                                        disabled={isLoading}
+                                        rows={1}
+                                        className={`w-full px-2 py-3.5 bg-transparent resize-none focus:outline-none transition-all ${theme === 'dark'
+                                            ? 'text-white placeholder-gray-500'
+                                            : 'text-gray-900 placeholder-gray-400'
+                                            } disabled:opacity-50 disabled:cursor-not-allowed text-base`}
+                                        style={{ maxHeight: '200px' }}
+                                    />
+                                </div>
 
-                        <div className="flex gap-2 items-end">
-                            <div className="flex-1 relative">
-                                <textarea
-                                    ref={textareaRef}
-                                    value={input}
-                                    onChange={handleInputChange}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="Ask EduAI anything..."
-                                    disabled={isLoading}
-                                    rows={1}
-                                    className={`w-full px-4 py-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all ${theme === 'dark'
-                                        ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700'
-                                        : 'bg-gray-50 text-gray-900 placeholder-gray-500 border border-gray-200'
-                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    style={{ maxHeight: '300px' }}
-                                />
+                                {/* Send button */}
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleSendMessage}
+                                    disabled={!input.trim() || isLoading}
+                                    className={`p-3.5 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center ${input.trim() && !isLoading
+                                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-lg'
+                                            : theme === 'dark' ? 'bg-gray-700 text-gray-500 shadow-none' : 'bg-gray-100 text-gray-400 shadow-none'
+                                        }`}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Send className="w-5 h-5 md:ml-0.5" />
+                                    )}
+                                </motion.button>
                             </div>
-
-                            {/* File upload button */}
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleFileButtonClick}
-                                disabled={isLoading || isUploadingFile}
-                                className={`p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
-                                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                                    }`}
-                                title="Upload document"
-                            >
-                                <Paperclip className="w-5 h-5" />
-                            </motion.button>
-
-                            {/* Send button */}
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleSendMessage}
-                                disabled={!input.trim() || isLoading}
-                                className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-3 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Send className="w-5 h-5" />
-                                )}
-                            </motion.button>
                         </div>
                     </div>
                 </div>

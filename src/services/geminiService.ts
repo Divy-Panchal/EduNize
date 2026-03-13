@@ -10,7 +10,7 @@ if (!API_KEY) {
 const genAI = new GoogleGenerativeAI(API_KEY || '');
 
 // System instruction for EduAI
-const SYSTEM_INSTRUCTION = `You are EduAI, a helpful and friendly AI educational assistant integrated into EduOrganized, a student productivity app. Your role is to:
+const SYSTEM_INSTRUCTION = `You are EduAI, a helpful and friendly AI educational assistant integrated into Edunize, a student productivity app. Your role is to:
 
 1. Help students organize their studies and manage their time effectively
 2. Explain complex concepts in simple, understandable terms

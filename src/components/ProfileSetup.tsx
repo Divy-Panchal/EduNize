@@ -50,7 +50,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
     };
 
     return (
-        <div className="min-h-screen blue-background relative overflow-hidden">
+        <div className="h-screen blue-background relative overflow-y-auto">
             {/* Enhanced floating dots - more variety */}
             <div className="floating-dot dot-white w-3 h-3 top-[10%] left-[5%] animate-float-slow" />
             <div className="floating-dot dot-outline w-4 h-4 top-[8%] left-[8%] animate-pulse-slow" />
@@ -117,12 +117,12 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
             />
 
             {/* Content */}
-            <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+            <div className="relative z-10 min-h-full flex items-center justify-center p-4 py-16">
                 <motion.div
                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
-                    className="w-full max-w-md bg-white p-8 rounded-2xl shadow-2xl"
+                    className="w-full max-w-md bg-white p-8 rounded-2xl shadow-2xl my-auto"
                 >
                     <div className="text-center mb-8">
                         <motion.div
@@ -140,7 +140,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
                             transition={{ delay: 0.4 }}
                             className="text-2xl md:text-3xl font-bold text-gray-800 mb-2"
                         >
-                            Welcome to EduNize! 👋
+                            Welcome to Edunize! 👋
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0 }}

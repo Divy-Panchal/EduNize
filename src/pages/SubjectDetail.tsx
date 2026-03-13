@@ -1,18 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, BookOpen, Calendar, X, Link as LinkIcon, Video, File, Check, Eye, Download } from 'lucide-react';
+import { Plus, BookOpen, Calendar, X, Link as LinkIcon, Video, File, Check, Eye, Download } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useSubject } from '../context/SubjectContext';
 import toast from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
+import { BackButton } from '../components/BackButton';
 
 export function SubjectDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { themeConfig, theme } = useTheme();
+    const { themeConfig } = useTheme();
     const { subjects, addTopic, deleteTopic, toggleTopic, addResource, deleteResource } = useSubject();
 
     const subject = subjects.find(s => s.id === id);
@@ -279,21 +281,17 @@ export function SubjectDetail() {
     };
 
     return (
-        <div className={`min-h-screen ${themeConfig.background} space-y-6 pb-20`}>
-            {/* Header with Back Button */}
+        <div className="h-full flex flex-col overflow-y-auto pb-32">
+            <Helmet>
+                <title>{subject?.name ? `${subject.name} - Subject Details` : 'Subject Details'} - Edunize.com</title>
+                <meta name="description" content={`View details, tasks, and materials for ${subject?.name || 'your subject'} on Edunize.`} />
+            </Helmet>
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`px-4 sticky top-0 z-50 py-2 backdrop-blur-md transition-colors duration-200 ${theme === 'dark' ? 'bg-gray-900/80' : 'bg-gray-50/80'
-                    }`}
+                className={`px-4 sticky top-0 z-50 py-2 backdrop-blur-md transition-colors duration-200 ${themeConfig.headerBg}`}
             >
-                <button
-                    onClick={() => navigate('/subjects')}
-                    className={`flex items-center gap-2 ${themeConfig.textSecondary} hover:${themeConfig.text} transition-colors mb-4`}
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                    <span>Back to Subjects</span>
-                </button>
+                <BackButton to="/subjects" label="Back to Subjects" className="mb-4" />
 
                 {/* Subject Header Card */}
                 <div className={`bg-gradient-to-r ${subject.color} rounded-2xl p-1 shadow-lg`}>

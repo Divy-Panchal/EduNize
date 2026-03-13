@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Image as ImageIcon, X, Calendar, CheckCircle2 } from 'lucide-react';
-import { useTask, Task } from '../context/TaskContext';
+import { Plus, Search, CheckCircle2 } from 'lucide-react';
+import { useTask } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
-import { useNavigate } from 'react-router-dom';
 import { TaskCard } from '../components/TaskCard';
 import { AddTaskModal } from '../components/AddTaskModal';
+import { BackButton } from '../components/BackButton';
 import toast from 'react-hot-toast';
 
 export function Tasks() {
   const { tasks, toggleTask, deleteTask } = useTask();
   const { themeConfig, theme } = useTheme();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -34,8 +34,15 @@ export function Tasks() {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
-      <div className="sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-md transition-colors duration-200">
+    <div className="h-full flex flex-col overflow-y-auto pb-32">
+      <Helmet>
+        <title>Tasks - Edunize.com</title>
+        <meta name="description" content="Organize your study tasks, track deadlines, and stay on top of your academic workload with Edunize." />
+      </Helmet>
+      <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
+        <div className="flex items-center gap-4 mb-4">
+            <BackButton />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
