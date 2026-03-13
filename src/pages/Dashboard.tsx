@@ -180,10 +180,7 @@ export function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-none ml-auto">
-            <BackButton className="md:hidden flex-none px-2 py-1.5" />
-            <div className="flex-none">
-              <DashboardProfile />
-            </div>
+            <DashboardProfile />
           </div>
         </motion.div>
       </div>
