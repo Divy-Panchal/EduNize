@@ -60,33 +60,13 @@ export function EduAI() {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-    // Handle responsive sidebar and keyboard visibility
+    // Handle responsive sidebar
     useEffect(() => {
-        let maxHeight = window.innerHeight;
-
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
-            
-            if (window.innerWidth < 768) {
-                const currentHeight = window.visualViewport?.height || window.innerHeight;
-                if (currentHeight > maxHeight) maxHeight = currentHeight;
-                if (maxHeight - currentHeight > 150) setIsKeyboardVisible(true);
-                else setIsKeyboardVisible(false);
-            } else {
-                setIsKeyboardVisible(false);
-            }
         };
-
-        window.visualViewport?.addEventListener('resize', handleResize);
         window.addEventListener('resize', handleResize);
-        handleResize(); // Initial check
-
-        return () => {
-            window.visualViewport?.removeEventListener('resize', handleResize);
-            window.removeEventListener('resize', handleResize);
-        };
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     // Load conversation messages when conversation changes
@@ -336,7 +316,7 @@ export function EduAI() {
                 </div>
 
                 {/* Chat Area */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 ${!isMobile ? 'mb-6' : isKeyboardVisible ? 'mb-0' : 'mb-28'}`}>
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-24 md:mb-6`}>
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (
@@ -511,7 +491,7 @@ export function EduAI() {
                     </div>
 
                     {/* Input Area */}
-                    <div className={`p-3 md:p-4 z-[60] bg-gradient-to-t ${theme === 'dark' ? 'from-gray-900 via-gray-900/95 to-transparent' : 'from-gray-50 via-gray-50/95 to-transparent'}`}>
+                    <div className={`p-4 z-[60] bg-gradient-to-t ${theme === 'dark' ? 'from-gray-900 via-gray-900/95 to-transparent' : 'from-gray-50 via-gray-50/95 to-transparent'}`}>
                         <div className="max-w-4xl mx-auto">
                             {/* File Preview */}
                             {uploadedFile && (
