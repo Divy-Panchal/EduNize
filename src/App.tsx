@@ -256,7 +256,7 @@ function AppContent() {
                 exit="out"
                 variants={pageVariants}
                 transition={pageTransition}
-                className="h-full w-full"
+                className="flex-1 flex flex-col w-full h-full"
               >
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
