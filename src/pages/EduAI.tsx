@@ -56,17 +56,44 @@ export function EduAI() {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Handle responsive sidebar
+    // Handle responsive sidebar and keyboard visibility
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (window.innerWidth >= 768) return;
+
+        let maxHeight = window.innerHeight;
+
+        const handleVisualViewportResize = () => {
+            const currentHeight = window.visualViewport?.height || window.innerHeight;
+            if (currentHeight > maxHeight) {
+                maxHeight = currentHeight;
+            }
+            if (maxHeight - currentHeight > 150) {
+                setIsKeyboardVisible(true);
+            } else {
+                setIsKeyboardVisible(false);
+            }
+        };
+
+        window.visualViewport?.addEventListener('resize', handleVisualViewportResize);
+        window.addEventListener('resize', handleVisualViewportResize);
+
+        return () => {
+            window.visualViewport?.removeEventListener('resize', handleVisualViewportResize);
+            window.removeEventListener('resize', handleVisualViewportResize);
+        };
     }, []);
 
     // Load conversation messages when conversation changes
@@ -229,7 +256,7 @@ export function EduAI() {
     const showWelcome = messages.length === 0;
 
     return (
-        <div className="flex-1 w-full h-full flex flex-col max-w-7xl mx-auto md:gap-4 md:flex-row pb-24 md:pb-6">
+        <div className={`flex-1 w-full h-full flex flex-col max-w-7xl mx-auto md:gap-4 md:flex-row ${isKeyboardVisible ? 'pb-2' : 'pb-32'} md:pb-6 transition-all duration-300`}>
             {/* History Sidebar */}
             <HistorySidebar
                 isOpen={isSidebarOpen}
@@ -316,7 +343,7 @@ export function EduAI() {
                 </div>
 
                 {/* Chat & Input Area Container */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-28 md:mb-6`}>
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 md:mb-6`}>
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (
