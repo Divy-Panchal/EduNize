@@ -343,7 +343,7 @@ export function EduAI() {
                 </div>
 
                 {/* Chat & Input Area Container */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 md:mb-6`}>
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-24 md:mb-6`}>
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (
@@ -518,7 +518,7 @@ export function EduAI() {
                     </div>
 
                     {/* Input Area (Now inside the Chat Card) */}
-                    <div className={`p-4 pb-24 md:pb-4 z-[40] ${themeConfig.card} md:bg-transparent md:bg-gradient-to-t ${theme === 'dark' ? 'md:from-gray-900 md:via-gray-900/95 md:to-transparent' : 'md:from-gray-50 md:via-gray-50/95 md:to-transparent'}`}>
+                    <div className={`p-4 z-[40] ${themeConfig.card} md:bg-transparent md:bg-gradient-to-t ${theme === 'dark' ? 'md:from-gray-900 md:via-gray-900/95 md:to-transparent' : 'md:from-gray-50 md:via-gray-50/95 md:to-transparent'}`}>
                         <div className="max-w-4xl mx-auto px-4 md:px-0">
                             {/* File Preview */}
                             {uploadedFile && (
