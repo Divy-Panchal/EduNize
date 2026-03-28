@@ -11,7 +11,7 @@ interface BackButtonProps {
 
 export function BackButton({ to, label, className = '' }: BackButtonProps) {
     const navigate = useNavigate();
-    const { themeConfig } = useTheme();
+    const { theme, themeConfig } = useTheme();
 
     const handleBack = () => {
         if (to) {
@@ -31,9 +31,9 @@ export function BackButton({ to, label, className = '' }: BackButtonProps) {
             whileHover={{ scale: 1.05, x: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleBack}
-            className={`flex items-center gap-2 ${themeConfig.textSecondary} hover:${themeConfig.text} transition-colors group ${className}`}
+            className={`flex items-center gap-2 ${themeConfig.textSecondary} ${theme === 'dark' ? 'hover:text-white' : 'hover:text-gray-900'} transition-colors group ${className}`}
         >
-            <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+            <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-800 group-hover:bg-gray-700' : 'bg-gray-100 group-hover:bg-gray-200'} transition-colors`}>
                 <ArrowLeft className="w-5 h-5" />
             </div>
             {label && <span className="font-medium">{label}</span>}
