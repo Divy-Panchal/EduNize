@@ -205,13 +205,13 @@ export function Dashboard() {
                 </div>
               </div>
               <a
-                href="https://www.amazon.com/dp/YOUR_APP_ID"
+                href="https://edunize.en.aptoide.com/app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full md:w-auto px-8 py-4 bg-white text-blue-600 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 text-center flex items-center justify-center gap-2"
               >
                 <Download className="w-5 h-5" />
-                Get it on Amazon Appstore
+                Get it on Aptoide
               </a>
             </div>
 
