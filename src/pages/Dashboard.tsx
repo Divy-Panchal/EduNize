@@ -161,7 +161,7 @@ export function Dashboard() {
   return (
     <div className="h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Dashboard - Edunize.com</title>
+        <title>Dashboard - Edunize</title>
         <meta name="description" content="View your academic overview, upcoming tasks, and today's schedule on your Edunize dashboard." />
       </Helmet>
       <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} transition-colors duration-200 border-b ${themeConfig.headerBorder}`}>

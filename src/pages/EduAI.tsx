@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import { HistorySidebar } from '../components/ChatHistory/HistorySidebar';
 import { BackButton } from '../components/BackButton';
 import { v4 as uuidv4 } from 'uuid';
+import { Capacitor } from '@capacitor/core';
 
 const SUGGESTED_PROMPTS = [
     {
@@ -60,6 +61,8 @@ export function EduAI() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const isNative = Capacitor.isNativePlatform();
 
     // Handle responsive sidebar and keyboard visibility
     useEffect(() => {
@@ -267,7 +270,7 @@ export function EduAI() {
             {/* Main Chat Area */}
             <div className="flex flex-col flex-1 min-w-0 h-full">
                 <Helmet>
-                    <title>EduAI - Your AI Study Companion - Edunize.com</title>
+                    <title>EduAI - Your AI Study Companion - Edunize</title>
                     <meta name="description" content="Get personalized study help, ask academic questions, and interact with EduAI, your advanced AI study companion on Edunize." />
                 </Helmet>
                 {/* Header */}
@@ -343,7 +346,7 @@ export function EduAI() {
                 </div>
 
                 {/* Chat & Input Area Container */}
-                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 mb-24 md:mb-6`}>
+                <div className={`flex-1 ${themeConfig.card} rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden flex flex-col min-h-0 ${isNative ? 'mb-24' : 'mb-32'} md:mb-6`}>
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                         <AnimatePresence mode="wait">
                             {showWelcome ? (

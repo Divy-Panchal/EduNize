@@ -158,7 +158,7 @@ export function Grades() {
     return (
         <div className="h-full flex flex-col overflow-y-auto pb-32">
             <Helmet>
-                <title>Grade Tracker - Monitor Your Academic Success - Edunize.com</title>
+                <title>Grade Tracker - Monitor Your Academic Success - Edunize</title>
                 <meta name="description" content="Keep track of your grades, calculate averages, and monitor your academic progress across all subjects with the Edunize Grade Tracker." />
             </Helmet>
             <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>

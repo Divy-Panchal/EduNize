@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.edunize.app',
-  appName: 'Edunize.com',
+  appName: 'Edunize',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
@@ -39,7 +39,7 @@ const config: CapacitorConfig = {
       providers: ["google.com"]
     }
   },
-  appendUserAgent: 'Edunize.com',
+  appendUserAgent: 'Edunize',
   android: {
     buildOptions: {
       keystorePassword: '',

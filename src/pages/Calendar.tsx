@@ -48,7 +48,7 @@ export function Calendar() {
     return (
         <div className="h-full flex flex-col overflow-y-auto pb-32">
             <Helmet>
-                <title>Study Calendar - Organize Your Academic Life - Edunize.com</title>
+                <title>Study Calendar - Organize Your Academic Life - Edunize</title>
                 <meta name="description" content="Manage your study schedule, track task deadlines, and view your academic commitments in a daily, weekly, or monthly calendar view on Edunize." />
             </Helmet>
             <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>

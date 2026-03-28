@@ -117,7 +117,7 @@ export function Settings() {
   return (
     <div className="h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Settings - Personalize Your Experience - Edunize.com</title>
+        <title>Settings - Personalize Your Experience - Edunize</title>
         <meta name="description" content="Customize your Edunize experience. Manage notification settings, app themes, and account security to suit your study style." />
       </Helmet>
       <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
@@ -131,7 +131,7 @@ export function Settings() {
         >
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>Settings</h1>
           <p className={themeConfig.textSecondary}>
-            Customize your Edunize.com experience
+            Customize your Edunize experience
           </p>
         </motion.div>
       </div>

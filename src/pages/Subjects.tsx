@@ -122,7 +122,7 @@ export function Subjects() {
   return (
     <div className="h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Subjects - Edunize.com</title>
+        <title>Subjects - Edunize</title>
         <meta name="description" content="Manage your academic subjects, track progress, and organize your study materials with Edunize." />
       </Helmet>
       {/* Header */}

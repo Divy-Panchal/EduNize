@@ -49,7 +49,7 @@ export function Results() {
   return (
     <div className="h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Academic Results - Edunize.com</title>
+        <title>Academic Results - Edunize</title>
         <meta name="description" content="Track your academic performance, view grade distributions, and analyze your progress with Edunize." />
       </Helmet>
       <div className={`p-4 md:p-6 pb-32 pt-8 md:pt-12 z-10 bg-inherit w-full max-w-7xl mx-auto`}>

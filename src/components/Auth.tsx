@@ -70,7 +70,7 @@ export function Auth() {
   return (
     <div className="fixed inset-0 blue-background overflow-hidden">
       <Helmet>
-        <title>Login / Sign Up - Edunize.com</title>
+        <title>Login / Sign Up - Edunize</title>
         <meta name="description" content="Sign in to your Edunize account to access your study dashboard, tasks, and EduAI companion." />
       </Helmet>
       {/* Decorative floating dots - kept fixed */}

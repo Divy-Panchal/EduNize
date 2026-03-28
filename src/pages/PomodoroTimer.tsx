@@ -251,7 +251,7 @@ export function PomodoroTimer() {
   return (
     <div className="max-w-7xl mx-auto h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Pomodoro Timer - Boost Productivity - Edunize.com</title>
+        <title>Pomodoro Timer - Boost Productivity - Edunize</title>
         <meta name="description" content="Use our Pomodoro timer to manage your study sessions, improve focus, and prevent burnout with structured work and break intervals on Edunize." />
       </Helmet>
       <div className={`sticky top-0 z-50 p-4 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>

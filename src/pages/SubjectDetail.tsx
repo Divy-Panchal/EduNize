@@ -283,7 +283,7 @@ export function SubjectDetail() {
     return (
         <div className="h-full flex flex-col overflow-y-auto pb-32">
             <Helmet>
-                <title>{subject?.name ? `${subject.name} - Subject Details` : 'Subject Details'} - Edunize.com</title>
+                <title>{subject?.name ? `${subject.name} - Subject Details` : 'Subject Details'} - Edunize</title>
                 <meta name="description" content={`View details, tasks, and materials for ${subject?.name || 'your subject'} on Edunize.`} />
             </Helmet>
             <motion.div

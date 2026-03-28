@@ -36,7 +36,7 @@ export function Tasks() {
   return (
     <div className="h-full flex flex-col overflow-y-auto pb-32">
       <Helmet>
-        <title>Tasks - Edunize.com</title>
+        <title>Tasks - Edunize</title>
         <meta name="description" content="Organize your study tasks, track deadlines, and stay on top of your academic workload with Edunize." />
       </Helmet>
       <div className={`sticky top-0 z-50 p-4 md:p-6 pb-2 pt-8 md:pt-12 ${themeConfig.headerBg} backdrop-blur-md transition-colors duration-200`}>
