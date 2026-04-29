@@ -14,6 +14,7 @@ import { PomodoroProvider } from './context/PomodoroContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AchievementProvider } from './context/AchievementContext';
 import { ChatHistoryProvider } from './context/ChatHistoryContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { Auth } from './components/Auth';
 import { DarkModeTransition } from './components/DarkModeTransition';
 import { Onboarding } from './components/Onboarding';
@@ -250,17 +251,19 @@ function App() {
                     <GradeProvider>
                       <DailyStatsProvider>
                         <PomodoroProvider>
-                          <Router>
-                            <Toaster
-                              position="top-right"
-                              toastOptions={{
-                                style: {
-                                  zIndex: 10001,
-                                },
-                              }}
-                            />
-                            <AppContent />
-                          </Router>
+                          <NotificationProvider>
+                            <Router>
+                              <Toaster
+                                position="top-right"
+                                toastOptions={{
+                                  style: {
+                                    zIndex: 10001,
+                                  },
+                                }}
+                              />
+                              <AppContent />
+                            </Router>
+                          </NotificationProvider>
                         </PomodoroProvider>
                       </DailyStatsProvider>
                     </GradeProvider>

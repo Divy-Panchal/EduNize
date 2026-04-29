@@ -1,73 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, Bell, User, Shield, HelpCircle, LogOut, Download, Trash2, AlertTriangle, Eye, EyeOff, GraduationCap, School } from 'lucide-react';
+import { Palette, Bell, User, LogOut, Trash2, AlertTriangle, Eye, EyeOff, GraduationCap, School } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import type { Theme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useGrade } from '../context/GradeContext';
+import { useNotification, NotificationSettings } from '../context/NotificationContext';
 import toast from 'react-hot-toast';
 
 export function Settings() {
   const { theme, setTheme, themeConfig } = useTheme();
-  const { signOut, deleteAccount, user } = useAuth();
+  const { signOut, deleteAccount } = useAuth();
   const { gradingSystem, setGradingSystem } = useGrade();
+  const { settings: notificationSettings, updateSettings } = useNotification();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const toastShownRef = useRef<{ [key: string]: number }>({});
 
-  // Notification settings state with localStorage persistence
-  const [notificationSettings, setNotificationSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('notificationSettings');
-      return saved ? JSON.parse(saved) : {
-        taskReminders: true,
-        pomodoroBreaks: true,
-        weeklyProgress: false,
-        achievementUnlocked: true
-      };
-    } catch {
-      return {
-        taskReminders: true,
-        pomodoroBreaks: true,
-        weeklyProgress: false,
-        achievementUnlocked: true
-      };
+  const toggleNotification = (key: keyof NotificationSettings) => {
+    const nextValue = !notificationSettings[key];
+    updateSettings({ [key]: nextValue });
+
+    const now = Date.now();
+    const lastToast = toastShownRef.current[key] || 0;
+
+    if (now - lastToast > 500) {
+      toastShownRef.current[key] = now;
+      const label = key.replace(/([A-Z])/g, ' $1').trim();
+      const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+      toast.success(`${capitalizedLabel} ${nextValue ? 'enabled' : 'disabled'}`);
     }
-  });
-
-  // Save notification settings to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
-  }, [notificationSettings]);
-
-  const toggleNotification = (key: string) => {
-    setNotificationSettings((prev: any) => {
-      const newSettings = {
-        ...prev,
-        [key]: !prev[key]
-      };
-
-      // Prevent duplicate toasts using ref
-      const now = Date.now();
-      const lastToast = toastShownRef.current[key] || 0;
-
-      // Only show toast if more than 500ms has passed since last toast for this key
-      if (now - lastToast > 500) {
-        toastShownRef.current[key] = now;
-        const label = key.replace(/([A-Z])/g, ' $1').trim();
-        const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
-        toast.success(`${capitalizedLabel} ${newSettings[key] ? 'enabled' : 'disabled'}`);
-      }
-
-      return newSettings;
-    });
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch (error: any) {
+    } catch {
       toast.error('Error signing out');
     }
   };
@@ -110,7 +80,7 @@ export function Settings() {
     { label: 'Pomodoro Breaks', key: 'pomodoroBreaks' },
     { label: 'Weekly Progress', key: 'weeklyProgress' },
     { label: 'Achievement Unlocked', key: 'achievementUnlocked' }
-  ];
+  ] satisfies Array<{ label: string; key: keyof NotificationSettings }>;
 
   return (
     <div className="space-y-6 pb-20">
@@ -149,7 +119,7 @@ export function Settings() {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setTheme(themeOption.id as any)}
+                onClick={() => setTheme(themeOption.id as Theme)}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isActive
                   ? `border-blue-500 dark:border-blue-400 ${activeCardBg}`
                   : `border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 ${inactiveCardBg}`
@@ -273,12 +243,12 @@ export function Settings() {
                 <motion.div
                   whileTap={{ scale: 0.95 }}
                   onClick={() => toggleNotification(setting.key)}
-                  className={`w-10 h-6 rounded-full cursor-pointer transition-colors duration-200 flex items-center ${notificationSettings[setting.key as keyof typeof notificationSettings] ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                  className={`w-10 h-6 rounded-full cursor-pointer transition-colors duration-200 flex items-center ${notificationSettings[setting.key] ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                 >
                   <motion.div
                     className="w-4 h-4 bg-white rounded-full ml-1"
-                    animate={{ x: notificationSettings[setting.key as keyof typeof notificationSettings] ? 16 : 0 }}
+                    animate={{ x: notificationSettings[setting.key] ? 16 : 0 }}
                     transition={{ duration: 0.2 }}
                   />
                 </motion.div>

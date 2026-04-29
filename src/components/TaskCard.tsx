@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Image as ImageIcon, Trash2, Check } from 'lucide-react';
+import { Calendar, Image as ImageIcon, Trash2, Check, X } from 'lucide-react';
 import { Task } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
 import { format } from 'date-fns';

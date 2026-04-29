@@ -77,7 +77,7 @@ export class LocalStorageManager {
         try {
             localStorage.setItem(key, value);
             console.info('Successfully saved after cleanup');
-        } catch (retryError) {
+        } catch {
             // Strategy 3: Notify user
             alert(
                 'Storage is full. Please clear some data or browser cache. ' +
@@ -92,7 +92,7 @@ export class LocalStorageManager {
     static getStorageSize(): number {
         let total = 0;
         for (const key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
                 total += localStorage[key].length + key.length;
             }
         }

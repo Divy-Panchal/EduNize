@@ -1,14 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, CheckSquare, User, CalendarDays, Sparkles } from 'lucide-react';
+import { BarChart3, BookOpen, CheckSquare, Clock, Home, Settings, User, CalendarDays, Sparkles } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const navigationItems = [
   { path: '/', icon: Home, label: 'Home' },
+  { path: '/subjects', icon: BookOpen, label: 'Subjects' },
   { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { path: '/timetable', icon: CalendarDays, label: 'Schedule' },
+  { path: '/grades', icon: BarChart3, label: 'Grades' },
+  { path: '/pomodoro', icon: Clock, label: 'Focus' },
   { path: '/eduai', icon: Sparkles, label: 'EduAI' },
   { path: '/profile', icon: User, label: 'Profile' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function Navigation() {
@@ -21,7 +25,7 @@ export function Navigation() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className={`flex items-center gap-2 sm:gap-3 md:gap-4 ${themeConfig.card} backdrop-blur-lg rounded-full shadow-lg border ${themeConfig.text === 'text-white' ? 'border-gray-700/30' : 'border-gray-200/30'} px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 w-auto max-w-[98%] sm:max-w-[95%] md:max-w-5xl`}
+        className={`flex items-center gap-1 sm:gap-2 ${themeConfig.card} backdrop-blur-lg rounded-full shadow-lg border ${themeConfig.text === 'text-white' ? 'border-gray-700/30' : 'border-gray-200/30'} px-3 sm:px-4 py-3 w-auto max-w-[98%] sm:max-w-[95%] md:max-w-5xl overflow-x-auto`}
       >
         {navigationItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -36,7 +40,7 @@ export function Navigation() {
               aria-current={isActive ? 'page' : undefined}
             >
               <motion.div
-                className="relative flex flex-col items-center justify-center px-4 sm:px-5 md:px-6 py-2"
+                className="relative flex flex-col items-center justify-center px-3 sm:px-4 md:px-5 py-2"
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.1 }}
               >

@@ -527,17 +527,11 @@ export function Profile() {
 
                 const nextAchievement = updated.find((a: any) => a.id === nextLevelId);
                 if (nextAchievement && !nextAchievement.unlocked) {
-                    // Don't auto-unlock, just make it visible
                     toast.success(`🔓 ${nextAchievement.name} is now available!`);
-
-                } else {
-
                 }
 
                 // Save to localStorage
                 localStorage.setItem(`achievements_${user.uid}`, JSON.stringify(updated));
-
-            } else {
 
             }
 
