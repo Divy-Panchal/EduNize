@@ -45,7 +45,6 @@ interface PomodoroContextType {
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
 
 const DEFAULT_DURATIONS = { work: 30 * 60, short: 5 * 60, long: 15 * 60 };
-const MAX_SECONDS = 60 * 60;
 
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();

@@ -12,7 +12,7 @@ export function ProfileDropdown() {
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch (error: any) {
+    } catch {
       toast.error('Error signing out');
     }
   };

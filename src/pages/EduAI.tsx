@@ -166,7 +166,7 @@ export function EduAI() {
             // Just store the file, we'll upload it when sending the message
             setUploadedFile(file);
             toast.success(`File "${file.name}" ready to upload`);
-        } catch (error) {
+        } catch {
             toast.error('Failed to prepare file');
         } finally {
             setIsUploadingFile(false);
@@ -570,4 +570,3 @@ export function EduAI() {
         </div>
     );
 }
-

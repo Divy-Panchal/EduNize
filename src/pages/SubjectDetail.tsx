@@ -27,6 +27,14 @@ export function SubjectDetail() {
     const [isUploading, setIsUploading] = useState(false);
     const blobUrlsRef = useRef<string[]>([]);
 
+    // Cleanup blob URLs on unmount
+    useEffect(() => {
+        return () => {
+            blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+            blobUrlsRef.current = [];
+        };
+    }, []);
+
     if (!subject) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -44,15 +52,6 @@ export function SubjectDetail() {
             </div>
         );
     }
-
-    // Cleanup blob URLs on unmount
-    useEffect(() => {
-        return () => {
-            blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-            blobUrlsRef.current = [];
-        };
-    }, []);
-
 
 
     const handleAddTopic = () => {
@@ -590,9 +589,10 @@ export function SubjectDetail() {
                                 </button>
                                 <button
                                     onClick={handleAddResource}
-                                    className="flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                                    disabled={isUploading}
+                                    className="flex-1 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
-                                    Add Resource
+                                    {isUploading ? 'Adding...' : 'Add Resource'}
                                 </button>
                             </div>
                         </motion.div>
@@ -602,4 +602,3 @@ export function SubjectDetail() {
         </div>
     );
 }
-

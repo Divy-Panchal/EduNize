@@ -1,18 +1,10 @@
-// Achievement tracking utility
-// Automatically tracks and updates achievements based on user actions
-
-import { useAuth } from '../context/AuthContext';
-
-export const trackEarlyBirdStudy = () => {
+export const trackEarlyBirdStudy = (userId: string) => {
     const now = new Date();
     const hour = now.getHours();
 
     // Check if studying before 8 AM
     if (hour < 8) {
-        const { user } = useAuth();
-        if (!user) return;
-
-        const key = `earlyBirdCount_${user.uid}`;
+        const key = `earlyBirdCount_${userId}`;
         const lastStudyDate = localStorage.getItem(`${key}_lastDate`);
         const today = now.toDateString();
 

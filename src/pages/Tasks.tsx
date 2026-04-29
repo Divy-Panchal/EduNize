@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Image as ImageIcon, X, Calendar } from 'lucide-react';
-import { useTask, Task } from '../context/TaskContext';
+import { Plus, Search, Filter, Calendar } from 'lucide-react';
+import { useTask } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
-import { useNavigate } from 'react-router-dom';
 import { TaskCard } from '../components/TaskCard';
 import { AddTaskModal } from '../components/AddTaskModal';
 import toast from 'react-hot-toast';
@@ -11,7 +10,6 @@ import toast from 'react-hot-toast';
 export function Tasks() {
   const { tasks, toggleTask, deleteTask } = useTask();
   const { themeConfig } = useTheme();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);

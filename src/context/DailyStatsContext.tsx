@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { FirestoreService } from '../services/firestoreService';
-import toast from 'react-hot-toast';
 
 interface DailyStats {
     date: string; // YYYY-MM-DD format

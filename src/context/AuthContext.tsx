@@ -77,6 +77,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearUserData();
         }
         localStorage.setItem('currentUserId', currentUser.uid);
+
+        if (!isMigrationComplete(currentUser.uid)) {
+          const migrated = await migrateLocalStorageToFirestore(currentUser.uid);
+          if (migrated) {
+            markMigrationComplete(currentUser.uid);
+            logger.info('Local data migration completed');
+          }
+        }
       }
 
       setLoading(false);
@@ -117,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithEmailAndPassword(auth, email, password);
       RateLimiter.reset(rateLimitKey);
       toast.success('Welcome back!');
-    } catch (error: any) {
+    } catch {
       RateLimiter.recordAttempt(rateLimitKey);
       throw new Error('Invalid email or password.');
     }
