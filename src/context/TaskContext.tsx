@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { getTimeOfDay, updateTimeBasedAchievements, updateDailyTaskCount } from '../utils/achievementHelpers';
 import { FirestoreService } from '../services/firestoreService';
-import { FCMService } from '../services/fcmService';
-import { LocalNotificationService } from '../services/localNotificationService';
 import toast from 'react-hot-toast';
 
 export interface Task {
@@ -72,20 +70,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString()
       };
       await taskService.setDocument(newTask.id, newTask);
-
-      // Schedule push notification if task has a due date
-      if (newTask.dueDate) {
-        FCMService.scheduleTaskReminder(
-          newTask.id,
-          newTask.title,
-          new Date(newTask.dueDate)
-        );
-        LocalNotificationService.scheduleTaskReminder(
-          newTask.id,
-          newTask.title,
-          new Date(newTask.dueDate)
-        );
-      }
     } catch (error) {
       console.error('Error adding task:', error);
       toast.error('Failed to add task. Please try again.');

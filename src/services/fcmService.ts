@@ -23,19 +23,15 @@ export class FCMService {
                 return false;
             }
 
-            // Register with FCM
-            await PushNotifications.register();
-
-            // Create a high-importance channel for "WhatsApp-like" behavior
-            await PushNotifications.createChannel({
-                id: 'fcm_default_channel_v2',
-                name: 'High Priority Notifications',
-                description: 'Show notifications with sound and vibration',
-                importance: 5, // High importance (heads up)
-                visibility: 1, // Public
-                sound: 'default',
-                vibration: true,
-            });
+            // Register with FCM - wrapped in try-catch to handle missing google-services.json
+            try {
+                await PushNotifications.register();
+            } catch (registerError: any) {
+                console.error('FCM Registration failed:', registerError);
+                console.warn('Push notifications require google-services.json to be configured');
+                console.warn('Download it from Firebase Console and place it in android/app/');
+                return false;
+            }
 
             // Listen for registration success
             await PushNotifications.addListener('registration', (token: Token) => {

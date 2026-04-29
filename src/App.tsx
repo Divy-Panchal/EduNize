@@ -1,11 +1,9 @@
-import { useState, useEffect, lazy, Suspense, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { App as CapacitorApp } from '@capacitor/app';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
-import { ExitConfirmationModal } from './components/ExitConfirmationModal';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext';
 import { SubjectProvider } from './context/SubjectContext';
@@ -22,7 +20,6 @@ import { Onboarding } from './components/Onboarding';
 import { ProfileSetup } from './components/ProfileSetup';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FCMService } from './services/fcmService';
-import { LocalNotificationService } from './services/localNotificationService';
 
 // Lazy load pages for better initial performance
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -36,7 +33,6 @@ const Settings = lazy(() => import('./pages/Settings').then(module => ({ default
 const Profile = lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
 const Grades = lazy(() => import('./pages/Grades').then(module => ({ default: module.Grades })));
 const EduAI = lazy(() => import('./pages/EduAI').then(module => ({ default: module.EduAI })));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // Loading component for Suspense
 const PageLoader = () => {
@@ -72,57 +68,19 @@ function AppContent() {
   const { user, loading } = useAuth();
   const { themeConfig, isTransitioning, transitionTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [showExitModal, setShowExitModal] = useState(false);
-
-  // Use refs to track state inside the event listener without re-binding
-  const locationRef = useRef(location);
-  const modalRef = useRef(showExitModal);
 
   useEffect(() => {
-    locationRef.current = location;
-    modalRef.current = showExitModal;
-  }, [location, showExitModal]);
-
-  useEffect(() => {
-    const handleBackButton = async () => {
-      const currentPath = locationRef.current.pathname;
-      const isModalOpen = modalRef.current;
-
-      if (currentPath === '/' || currentPath.startsWith('/dashboard')) {
-        if (isModalOpen) {
-          // Close modal if open
-          setShowExitModal(false);
-        } else {
-          // Open modal if closed
-          setShowExitModal(true);
-        }
-      } else {
-        // Navigate to dashboard (root) if on any other page
-        navigate('/');
-      }
-    };
-
-    const setupListener = async () => {
-      const backListener = await CapacitorApp.addListener('backButton', handleBackButton);
-      return backListener;
-    };
-
-    const listenerPromise = setupListener();
-
-    return () => {
-      listenerPromise.then(handler => handler.remove());
-    };
-  }, [navigate]);
-
-  useEffect(() => {
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
-    if (!hasCompletedOnboarding) {
-      setShowOnboarding(true);
+    if (!user) {
+      setShowOnboarding(false);
+      setShowProfileSetup(false);
+      return;
     }
-  }, []);
+
+    const hasCompletedOnboarding = localStorage.getItem(`hasCompletedOnboarding_${user.uid}`);
+    setShowOnboarding(!hasCompletedOnboarding);
+  }, [user]);
 
   useEffect(() => {
     // Check if user has completed profile setup
@@ -138,9 +96,6 @@ function AppContent() {
   // Initialize FCM when user logs in
   useEffect(() => {
     if (user && !showOnboarding && !showProfileSetup) {
-      // Request local notification permissions
-      LocalNotificationService.requestPermissions();
-
       FCMService.initialize().then(success => {
         if (success) {
           console.log('✅ FCM initialized successfully');
@@ -157,7 +112,9 @@ function AppContent() {
   }, [user, showOnboarding, showProfileSetup]);
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem('hasCompletedOnboarding', 'true');
+    if (user) {
+      localStorage.setItem(`hasCompletedOnboarding_${user.uid}`, 'true');
+    }
     setShowOnboarding(false);
   };
 
@@ -213,7 +170,7 @@ function AppContent() {
   }
 
   return (
-    <div className={`h-screen w-full ${themeConfig.background} ${themeConfig.text} transition-colors duration-300 overflow-hidden`}>
+    <div className={`min-h-screen ${themeConfig.background} ${themeConfig.text} transition-colors duration-300`}>
       <DarkModeTransition
         isTransitioning={isTransitioning}
         transitionTheme={transitionTheme}
@@ -245,9 +202,9 @@ function AppContent() {
       </AnimatePresence>
 
       {!showOnboarding && !showProfileSetup && (
-        <div className="flex flex-col md:flex-row h-screen overflow-hidden fixed inset-0 w-full">
+        <div className="md:flex-row">
           <Navigation />
-          <main className="flex-1 overflow-hidden flex flex-col safe-area-top safe-area-bottom relative" id="main-scroll-container">
+          <main className="flex-1 p-4 md:p-6 pb-52 safe-area-top safe-area-bottom">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -256,7 +213,7 @@ function AppContent() {
                 exit="out"
                 variants={pageVariants}
                 transition={pageTransition}
-                className="flex-1 flex flex-col w-full h-full"
+                className="min-h-screen"
               >
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
@@ -270,18 +227,12 @@ function AppContent() {
                   <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
                   <Route path="/profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
                   <Route path="/eduai" element={<Suspense fallback={<PageLoader />}><EduAI /></Suspense>} />
-                  <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>} />
                 </Routes>
               </motion.div>
             </AnimatePresence>
           </main>
         </div>
       )}
-      <ExitConfirmationModal
-        isOpen={showExitModal}
-        onClose={() => setShowExitModal(false)}
-        onConfirm={() => CapacitorApp.exitApp()}
-      />
     </div>
   );
 }

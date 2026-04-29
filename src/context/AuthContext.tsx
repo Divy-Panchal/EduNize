@@ -40,6 +40,7 @@ const clearUserData = (userId?: string) => {
 
   if (userId) {
     localStorage.removeItem(`userData_${userId}`);
+    localStorage.removeItem(`hasCompletedOnboarding_${userId}`);
     localStorage.removeItem(`hasCompletedProfileSetup_${userId}`);
     localStorage.removeItem(`grades_${userId}`);
     localStorage.removeItem(`dailyStats_${userId}`);

@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { FirestoreService } from '../services/firestoreService';
-import { FCMService } from '../services/fcmService';
 import toast from 'react-hot-toast';
 
 // Achievement type definition
@@ -219,14 +218,6 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
                         progress: newProgress,
                         unlocked: newUnlocked
                     });
-
-                    // Send push notification if it was just unlocked
-                    if (newUnlocked && !achievement.unlocked) {
-                        FCMService.sendAchievementNotification(
-                            achievement.name,
-                            achievement.description
-                        );
-                    }
                 } catch (error) {
                     console.error(`Error updating achievement ${achievement.id}:`, error);
                 }

@@ -41,4 +41,3 @@ firestore-debug.log
 ui-debug.log
 *.keystore
 android/key.properties
-.vercel
