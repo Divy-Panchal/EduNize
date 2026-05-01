@@ -60,7 +60,7 @@ export type ToolExecutors = {
 export class GeminiService {
     private getModel(appContext: string = '') {
         return genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             systemInstruction: {
                 role: 'system',
                 parts: [{ text: `${SYSTEM_INSTRUCTION}\n\nCurrent App Context:\n${appContext}` }]
@@ -120,7 +120,7 @@ export class GeminiService {
                 const toolName = call.name;
                 const args = call.args;
                 
-                let functionResultStr = "Action executed successfully.";
+                let functionResultStr = "Action completed.";
                 
                 if (toolExecutors && toolExecutors[toolName]) {
                     try {
@@ -128,20 +128,18 @@ export class GeminiService {
                         if (res) functionResultStr = res;
                         actionPerformed = `Executed ${toolName} tool`;
                     } catch (e: any) {
-                        functionResultStr = `Error executing tool: ${e.message}`;
+                        functionResultStr = `Error: ${e.message}`;
                     }
                 } else {
-                    functionResultStr = `Tool ${toolName} not implemented in frontend.`;
+                    functionResultStr = `Tool ${toolName} is not available.`;
                 }
 
-                // Send function response back to the model to get final text
-                result = await chat.sendMessage([{
-                    functionResponse: {
-                        name: toolName,
-                        response: { result: functionResultStr }
-                    }
-                }]);
-                response = result.response;
+                // Return the tool result directly without a second API call
+                // This saves 1 API request per tool use (critical for free tier)
+                return {
+                    text: functionResultStr,
+                    actionPerformed
+                };
             }
 
             return {
@@ -150,11 +148,11 @@ export class GeminiService {
             };
         } catch (error: any) {
             console.error('Error in GeminiService:', error);
-            const msg = error.message || '';
+            const msg = error.message || 'Failed to get response from EduAI';
             if (msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
-                throw new Error('⏳ Rate limit reached. Please wait a minute and try again.');
+                throw new Error('⏳ Rate limit reached. Please wait ~60 seconds and try again. (Tip: Free tier allows 15 requests/minute)');
             }
-            throw new Error(msg || 'Failed to get response from EduAI');
+            throw new Error(msg);
         }
     }
 
