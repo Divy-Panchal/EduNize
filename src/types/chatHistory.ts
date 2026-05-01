@@ -21,7 +21,7 @@ export interface ChatHistoryContextType {
     isLoading: boolean;
     createNewConversation: () => void;
     loadConversation: (id: string) => void;
-    saveMessage: (message: ChatMessage) => Promise<void>;
+    saveMessage: (message: ChatMessage, overrideConversationId?: string) => Promise<Conversation | null>;
     deleteConversation: (id: string) => Promise<void>;
     updateConversationTitle: (id: string, title: string) => Promise<void>;
     clearCurrentConversation: () => void;

@@ -114,8 +114,9 @@ export class GeminiService {
             let actionPerformed: string | undefined;
 
             // Handle Function Calls (Agentic Loop)
-            if (response.functionCalls && response.functionCalls.length > 0) {
-                const call = response.functionCalls[0];
+            const functionCalls = response.functionCalls();
+            if (functionCalls && functionCalls.length > 0) {
+                const call = functionCalls[0];
                 const toolName = call.name;
                 const args = call.args;
                 

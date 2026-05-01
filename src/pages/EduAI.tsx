@@ -48,7 +48,7 @@ export function EduAI() {
         clearCurrentConversation
     } = useChatHistory();
     const { tasks, addTask } = useTask();
-    const { switchMode } = usePomodoro();
+    const { switchMode, toggleTimer } = usePomodoro();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -110,7 +110,7 @@ export function EduAI() {
         setIsTyping(true);
 
         // Save user message to history
-        await saveMessage(userMessage);
+        const savedConv = await saveMessage(userMessage);
 
         // Reset textarea height
         if (textareaRef.current) {
@@ -142,6 +142,8 @@ Active Tasks: ${tasks.filter(t => !t.completed).length} pending
                 start_pomodoro: async (args: any) => {
                     const mode = args.mode || 'work';
                     switchMode(mode as 'work' | 'short' | 'long', true);
+                    // Auto-start the timer after switching mode
+                    setTimeout(() => toggleTimer(), 100);
                     return `Pomodoro timer started in ${mode} mode.`;
                 }
             };
@@ -168,8 +170,8 @@ Active Tasks: ${tasks.filter(t => !t.completed).length} pending
             setIsTyping(false);
             setMessages((prev) => [...prev, aiMessage]);
 
-            // Save AI message to history
-            await saveMessage(aiMessage);
+            // Save AI message to history — use same conversation ID
+            await saveMessage(aiMessage, savedConv?.id);
         } catch (error) {
             setIsTyping(false);
             toast.error(error instanceof Error ? error.message : 'Failed to get response');
