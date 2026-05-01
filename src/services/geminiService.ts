@@ -60,7 +60,7 @@ export type ToolExecutors = {
 export class GeminiService {
     private getModel(appContext: string = '') {
         return genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             systemInstruction: {
                 role: 'system',
                 parts: [{ text: `${SYSTEM_INSTRUCTION}\n\nCurrent App Context:\n${appContext}` }]
@@ -150,7 +150,11 @@ export class GeminiService {
             };
         } catch (error: any) {
             console.error('Error in GeminiService:', error);
-            throw new Error(error.message || 'Failed to get response from EduAI');
+            const msg = error.message || '';
+            if (msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+                throw new Error('⏳ Rate limit reached. Please wait a minute and try again.');
+            }
+            throw new Error(msg || 'Failed to get response from EduAI');
         }
     }
 
