@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAuth } from './AuthContext';
 import { useDailyStats } from './DailyStatsContext';
 import { getTimeOfDay, updateTimeBasedAchievements } from '../utils/achievementHelpers';
+import { updateStudyStreak } from '../utils/achievementTracker';
 import { FirestoreService } from '../services/firestoreService';
 import toast from 'react-hot-toast';
 
@@ -257,6 +258,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
             if (user?.uid) {
                 const timeOfDay = getTimeOfDay();
                 updateTimeBasedAchievements(user.uid, timeOfDay);
+                updateStudyStreak(user.uid);
             }
 
             // Trigger achievement check

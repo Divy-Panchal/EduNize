@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, X, Calculator, FlaskConical, Globe, BookText, Palette, Dumbbell, Music, Code, Languages, TrendingUp, Microscope, Atom, Users } from 'lucide-react';
+import { Plus, BookOpen, X, Calculator, FlaskConical, Globe, BookText, Palette, Dumbbell, Music, Code, Languages, TrendingUp, Microscope, Atom, Users, Bot, Shield, Landmark, Smartphone, Megaphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useSubject } from '../context/SubjectContext';
@@ -16,41 +16,50 @@ export function Subjects() {
   const getSubjectIcon = (subjectName: string) => {
     const name = subjectName.toLowerCase();
 
-    if (name.includes('math') || name.includes('algebra') || name.includes('calculus') || name.includes('geometry')) {
+    if (/\b(ai|artificial intelligence|machine learning)\b/.test(name)) {
+      return Bot;
+    } else if (/\b(security|cyber|data security)\b/.test(name)) {
+      return Shield;
+    } else if (/\b(constitution|law|civics|legal)\b/.test(name)) {
+      return Landmark;
+    } else if (/\b(android|app|mobile|ios)\b/.test(name)) {
+      return Smartphone;
+    } else if (/\b(marketing|digital marketing|seo)\b/.test(name)) {
+      return Megaphone;
+    } else if (/\b(math|maths|algebra|calculus|geometry)\b/.test(name)) {
       return Calculator;
-    } else if (name.includes('chem') || name.includes('chemistry')) {
+    } else if (/\b(chem|chemistry)\b/.test(name)) {
       return FlaskConical;
-    } else if (name.includes('phys') || name.includes('physics')) {
+    } else if (/\b(phys|physics)\b/.test(name)) {
       return Atom;
-    } else if (name.includes('bio') || name.includes('biology')) {
+    } else if (/\b(bio|biology)\b/.test(name)) {
       return Microscope;
-    } else if (name.includes('geo') || name.includes('geography')) {
+    } else if (/\b(geo|geography)\b/.test(name)) {
       return Globe;
-    } else if (name.includes('hist') || name.includes('history')) {
+    } else if (/\b(hist|history)\b/.test(name)) {
       return BookText;
-    } else if (name.includes('art') || name.includes('drawing') || name.includes('paint')) {
+    } else if (/\b(art|drawing|paint|painting)\b/.test(name)) {
       return Palette;
-    } else if (name.includes('pe') || name.includes('physical') || name.includes('sport') || name.includes('gym')) {
+    } else if (/\b(pe|physical|sport|gym)\b/.test(name)) {
       return Dumbbell;
-    } else if (name.includes('music') || name.includes('band') || name.includes('choir')) {
+    } else if (/\b(music|band|choir)\b/.test(name)) {
       return Music;
-    } else if (name.includes('comput') || name.includes('coding') || name.includes('programming') || name.includes('it')) {
+    } else if (/\b(comput|computer|coding|programming|it|cs|software|web)\b/.test(name)) {
       return Code;
-    } else if (name.includes('english') || name.includes('language') || name.includes('literature')) {
+    } else if (/\b(english|language|literature)\b/.test(name)) {
       return Languages;
-    } else if (name.includes('hindi') || name.includes('हिंदी') || name.includes('हिन्दी')) {
-      // Return a custom component for Hindi that displays the letter 'अ'
+    } else if (/\b(hindi|हिंदी|हिन्दी)\b/.test(name)) {
       return ({ className }: { className?: string }) => (
         <div className={`flex items-center justify-center ${className}`}>
           <span className="font-bold text-current" style={{ fontSize: '1em', lineHeight: '1' }}>अ</span>
         </div>
       );
-    } else if (name.includes('econ') || name.includes('business') || name.includes('commerce')) {
+    } else if (/\b(econ|economics|business|commerce|finance)\b/.test(name)) {
       return TrendingUp;
-    } else if (name.includes('social') && name.includes('science')) {
-      return Users; // Users icon for Social Science
-    } else if (name.includes('science')) {
-      return Atom; // Atom icon for general Science
+    } else if (/\bsocial science\b/.test(name)) {
+      return Users;
+    } else if (/\bscience\b/.test(name)) {
+      return Atom;
     } else {
       return BookOpen;
     }
@@ -60,44 +69,55 @@ export function Subjects() {
   const getSubjectColor = (subjectName: string) => {
     const name = subjectName.toLowerCase();
 
-    if (name.includes('math') || name.includes('algebra') || name.includes('calculus') || name.includes('geometry')) {
-      return 'from-purple-500 to-purple-600'; // Purple for Math
-    } else if (name.includes('chem') || name.includes('chemistry')) {
-      return 'from-green-500 to-green-600'; // Green for Chemistry
-    } else if (name.includes('phys') || name.includes('physics')) {
-      return 'from-orange-500 to-orange-600'; // Orange for Physics
-    } else if (name.includes('bio') || name.includes('biology')) {
-      return 'from-emerald-500 to-emerald-600'; // Emerald for Biology
-    } else if (name.includes('geo') || name.includes('geography')) {
-      return 'from-cyan-500 to-cyan-600'; // Cyan for Geography
-    } else if (name.includes('hist') || name.includes('history')) {
-      return 'from-amber-500 to-amber-600'; // Amber for History
-    } else if (name.includes('art') || name.includes('drawing') || name.includes('paint')) {
-      return 'from-pink-500 to-pink-600'; // Pink for Art
-    } else if (name.includes('pe') || name.includes('physical') || name.includes('sport') || name.includes('gym')) {
-      return 'from-red-500 to-red-600'; // Red for PE
-    } else if (name.includes('music') || name.includes('band') || name.includes('choir')) {
-      return 'from-violet-500 to-violet-600'; // Violet for Music
-    } else if (name.includes('comput') || name.includes('coding') || name.includes('programming') || name.includes('it')) {
-      return 'from-slate-500 to-slate-600'; // Slate for Computer Science
-    } else if (name.includes('english') || name.includes('language') || name.includes('literature')) {
-      return 'from-rose-500 to-rose-600'; // Rose for English
-    } else if (name.includes('hindi') || name.includes('हिंदी') || name.includes('हिन्दी')) {
-      return 'from-lime-500 to-lime-600'; // Lime for Hindi
-    } else if (name.includes('econ') || name.includes('business') || name.includes('commerce')) {
-      return 'from-teal-500 to-teal-600'; // Teal for Economics
-    } else if (name.includes('social') && name.includes('science')) {
-      return 'from-indigo-500 to-indigo-600'; // Indigo for Social Science
-    } else if (name.includes('science')) {
-      return 'from-blue-500 to-blue-600'; // Blue for Science
+    if (/\b(ai|artificial intelligence|machine learning)\b/.test(name)) {
+      return 'from-fuchsia-500 to-pink-600';
+    } else if (/\b(security|cyber|data security)\b/.test(name)) {
+      return 'from-slate-600 to-slate-800';
+    } else if (/\b(constitution|law|civics|legal)\b/.test(name)) {
+      return 'from-amber-600 to-orange-700';
+    } else if (/\b(android|app|mobile|ios)\b/.test(name)) {
+      return 'from-emerald-400 to-emerald-600';
+    } else if (/\b(marketing|digital marketing|seo)\b/.test(name)) {
+      return 'from-blue-500 to-indigo-600';
+    } else if (/\b(math|maths|algebra|calculus|geometry)\b/.test(name)) {
+      return 'from-purple-500 to-purple-600';
+    } else if (/\b(chem|chemistry)\b/.test(name)) {
+      return 'from-green-500 to-green-600';
+    } else if (/\b(phys|physics)\b/.test(name)) {
+      return 'from-orange-500 to-orange-600';
+    } else if (/\b(bio|biology)\b/.test(name)) {
+      return 'from-teal-500 to-teal-600';
+    } else if (/\b(geo|geography)\b/.test(name)) {
+      return 'from-cyan-500 to-cyan-600';
+    } else if (/\b(hist|history)\b/.test(name)) {
+      return 'from-yellow-600 to-amber-700';
+    } else if (/\b(art|drawing|paint|painting)\b/.test(name)) {
+      return 'from-rose-400 to-rose-600';
+    } else if (/\b(pe|physical|sport|gym)\b/.test(name)) {
+      return 'from-red-500 to-red-600';
+    } else if (/\b(music|band|choir)\b/.test(name)) {
+      return 'from-violet-500 to-violet-600';
+    } else if (/\b(comput|computer|coding|programming|it|cs|software|web)\b/.test(name)) {
+      return 'from-blue-600 to-blue-800';
+    } else if (/\b(english|language|literature)\b/.test(name)) {
+      return 'from-rose-500 to-rose-600';
+    } else if (/\b(hindi|हिंदी|हिन्दी)\b/.test(name)) {
+      return 'from-lime-500 to-lime-600';
+    } else if (/\b(econ|economics|business|commerce|finance)\b/.test(name)) {
+      return 'from-emerald-600 to-teal-700';
+    } else if (/\bsocial science\b/.test(name)) {
+      return 'from-indigo-500 to-indigo-600';
+    } else if (/\bscience\b/.test(name)) {
+      return 'from-blue-400 to-blue-600';
     } else {
-      // Random color for unknown subjects
       const colors = [
         'from-indigo-500 to-indigo-600',
         'from-fuchsia-500 to-fuchsia-600',
         'from-lime-500 to-lime-600',
+        'from-sky-500 to-sky-600',
+        'from-orange-500 to-orange-600'
       ];
-      return colors[Math.floor(Math.random() * colors.length)];
+      return colors[name.length % colors.length];
     }
   };
 
@@ -198,7 +218,7 @@ export function Subjects() {
                 className="relative"
               >
                 <div
-                  className={`bg-gradient-to-r ${subject.color} rounded-2xl p-1 shadow-lg cursor-pointer`}
+                  className={`bg-gradient-to-r ${getSubjectColor(subject.name)} rounded-2xl p-1 shadow-lg cursor-pointer`}
                   onClick={() => navigate(`/subjects/${subject.id}`)}
                 >
                   <div className={`${themeConfig.card} rounded-xl p-4 h-20 flex items-center justify-between relative overflow-hidden`}>
@@ -209,7 +229,7 @@ export function Subjects() {
 
                     <div className="relative z-10 flex items-center gap-3 flex-1">
                       {/* Subject Icon */}
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-r ${subject.color} shadow-md`}>
+                      <div className={`p-2.5 rounded-xl bg-gradient-to-r ${getSubjectColor(subject.name)} shadow-md`}>
                         {React.createElement(getSubjectIcon(subject.name), { className: 'w-6 h-6 text-white' })}
                       </div>
 

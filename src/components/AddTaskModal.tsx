@@ -8,19 +8,31 @@ import toast from 'react-hot-toast';
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialDate?: Date | null;
 }
 
-export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, initialDate }: AddTaskModalProps) {
   const { addTask } = useTask();
   const { themeConfig } = useTheme();
+  
+  // Format the date for input type="date"
+  const formattedDate = initialDate ? initialDate.toISOString().split('T')[0] : '';
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
-    dueDate: '',
+    dueDate: formattedDate,
     category: '',
     image: ''
   });
+
+  // Update formData when initialDate changes
+  React.useEffect(() => {
+    if (initialDate) {
+      setFormData(prev => ({ ...prev, dueDate: initialDate.toISOString().split('T')[0] }));
+    }
+  }, [initialDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

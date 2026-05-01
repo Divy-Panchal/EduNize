@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, RotateCcw, Loader2, History, Menu, Paperclip, X, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useChatHistory } from '../context/ChatHistoryContext';
+import { useTask } from '../context/TaskContext';
+import { usePomodoro } from '../context/PomodoroContext';
 import { geminiService, Message } from '../services/geminiService';
 import { validateFile, formatFileSize } from '../types/file';
 import toast from 'react-hot-toast';
@@ -45,6 +47,8 @@ export function EduAI() {
         saveMessage,
         clearCurrentConversation
     } = useChatHistory();
+    const { tasks, addTask } = useTask();
+    const { switchMode } = usePomodoro();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -84,12 +88,7 @@ export function EduAI() {
         scrollToBottom();
     }, [messages, isTyping]);
 
-    // Auto-create conversation when user starts typing without one
-    useEffect(() => {
-        if (messages.length > 0 && !currentConversation) {
-            createNewConversation();
-        }
-    }, [messages, currentConversation, createNewConversation]);
+    // Auto-creation handled directly by ChatHistoryContext now
 
     const handleSendMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -120,20 +119,49 @@ export function EduAI() {
 
         try {
             let response: string;
+            let actionPerformed: string | undefined;
+
+            const appContext = `
+Date/Time: ${new Date().toLocaleString()}
+Active Tasks: ${tasks.filter(t => !t.completed).length} pending
+            `;
+
+            const toolExecutors = {
+                create_task: async (args: any) => {
+                    await addTask({
+                        title: args.title,
+                        description: '',
+                        completed: false,
+                        priority: args.priority || 'medium',
+                        dueDate: new Date().toISOString().split('T')[0],
+                        category: args.category || 'General'
+                    });
+                    toast.success(`Agent added task: ${args.title}`);
+                    return `Task "${args.title}" created successfully.`;
+                },
+                start_pomodoro: async (args: any) => {
+                    const mode = args.mode || 'work';
+                    switchMode(mode as 'work' | 'short' | 'long', true);
+                    return `Pomodoro timer started in ${mode} mode.`;
+                }
+            };
 
             // Send with file if one is uploaded
             if (uploadedFile) {
-                response = await geminiService.sendMessageWithFile(userMessage.content, uploadedFile);
+                const res = await geminiService.sendMessageWithFile(userMessage.content, uploadedFile);
+                response = res.text;
                 // Clear uploaded file after sending
                 setUploadedFile(null);
             } else {
-                response = await geminiService.sendMessage(userMessage.content);
+                const res = await geminiService.sendMessage(userMessage.content, messages, appContext, toolExecutors);
+                response = res.text;
+                actionPerformed = res.actionPerformed;
             }
 
             const aiMessage: Message = {
                 id: uuidv4(),
                 role: 'assistant',
-                content: response,
+                content: actionPerformed ? `*✨ ${actionPerformed}*\n\n${response}` : response,
                 timestamp: new Date(),
             };
 

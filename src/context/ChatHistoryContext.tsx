@@ -74,14 +74,31 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
         }
     };
 
-    const saveMessage = async (message: ChatMessage) => {
-        if (!currentConversation || !user) return;
+    const saveMessage = async (message: ChatMessage, overrideConversationId?: string) => {
+        if (!user) return null;
+
+        // Try to find the conversation from the latest state, falling back to currentConversation
+        let conversationToUpdate = overrideConversationId 
+            ? conversations.find(c => c.id === overrideConversationId) || currentConversation
+            : currentConversation;
+
+        // Auto-create conversation if none exists
+        if (!conversationToUpdate) {
+            conversationToUpdate = {
+                id: uuidv4(),
+                userId: user.uid,
+                title: 'New Chat',
+                messages: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+        }
 
         try {
-            // Add message to current conversation
+            // Add message to conversation
             const updatedConversation = {
-                ...currentConversation,
-                messages: [...currentConversation.messages, message],
+                ...conversationToUpdate,
+                messages: [...conversationToUpdate.messages, message],
                 updatedAt: new Date(),
             };
 
@@ -107,8 +124,11 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
                     return [updatedConversation, ...prev];
                 }
             });
+            
+            return updatedConversation;
         } catch (error) {
             console.error('Error saving message:', error);
+            return null;
         }
     };
 

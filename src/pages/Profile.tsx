@@ -224,47 +224,27 @@ export function Profile() {
     const [achievements, setAchievements] = useState(() => {
         if (!user) return [];
 
-        // Define all available achievements with levels
+        // Define all available achievements with 3-star levels
         const allAchievements = [
-            // Early Bird - Levels
-            { id: 'early_bird_1', name: 'Early Bird I', icon: '🌅', description: 'Study before 8 AM', unlocked: false, claimed: false, progress: 0, maxProgress: 1, level: 1, points: 100 },
-            { id: 'early_bird_2', name: 'Early Bird II', icon: '🌅', description: 'Study before 8 AM for 5 days', unlocked: false, claimed: false, progress: 0, maxProgress: 5, level: 2, points: 250 },
-            { id: 'early_bird_3', name: 'Early Bird III', icon: '🌅', description: 'Study before 8 AM for 15 days', unlocked: false, claimed: false, progress: 0, maxProgress: 15, level: 3, points: 500 },
-
-            // Night Owl - Levels
-            { id: 'night_owl_1', name: 'Night Owl I', icon: '🦉', description: 'Study after 10 PM', unlocked: false, claimed: false, progress: 0, maxProgress: 1, level: 1, points: 100 },
-            { id: 'night_owl_2', name: 'Night Owl II', icon: '🦉', description: 'Study after 10 PM for 5 days', unlocked: false, claimed: false, progress: 0, maxProgress: 5, level: 2, points: 250 },
-            { id: 'night_owl_3', name: 'Night Owl III', icon: '🦉', description: 'Study after 10 PM for 15 days', unlocked: false, claimed: false, progress: 0, maxProgress: 15, level: 3, points: 500 },
-
-            // Streak Master - Levels
-            { id: 'streak_master_1', name: 'Streak Master I', icon: '🔥', description: '7 day study streak', unlocked: false, claimed: false, progress: 0, maxProgress: 7, level: 1, points: 300 },
-            { id: 'streak_master_2', name: 'Streak Master II', icon: '🔥', description: '30 day study streak', unlocked: false, claimed: false, progress: 0, maxProgress: 30, level: 2, points: 1000 },
-            { id: 'streak_master_3', name: 'Streak Master III', icon: '🔥', description: '100 day study streak', unlocked: false, claimed: false, progress: 0, maxProgress: 100, level: 3, points: 3000 },
-
-            // Task Crusher - Levels
-            { id: 'task_crusher_1', name: 'Task Crusher I', icon: '✅', description: 'Complete 25 tasks', unlocked: false, claimed: false, progress: 0, maxProgress: 25, level: 1, points: 400 },
-            { id: 'task_crusher_2', name: 'Task Crusher II', icon: '✅', description: 'Complete 50 tasks', unlocked: false, claimed: false, progress: 0, maxProgress: 50, level: 2, points: 800 },
-            { id: 'task_crusher_3', name: 'Task Crusher III', icon: '✅', description: 'Complete 100 tasks', unlocked: false, claimed: false, progress: 0, maxProgress: 100, level: 3, points: 1500 },
-
-            // Focus Master - Levels
-            { id: 'focus_master_1', name: 'Focus Master I', icon: '🧠', description: 'Complete 10 Pomodoro sessions', unlocked: false, claimed: false, progress: 0, maxProgress: 10, level: 1, points: 300 },
-            { id: 'focus_master_2', name: 'Focus Master II', icon: '🧠', description: 'Complete 25 Pomodoro sessions', unlocked: false, claimed: false, progress: 0, maxProgress: 25, level: 2, points: 600 },
-            { id: 'focus_master_3', name: 'Focus Master III', icon: '🧠', description: 'Complete 50 Pomodoro sessions', unlocked: false, claimed: false, progress: 0, maxProgress: 50, level: 3, points: 1200 },
-
-            // Speed Demon - Levels
-            { id: 'speed_demon_1', name: 'Speed Demon I', icon: '⚡', description: 'Complete 5 tasks in one day', unlocked: false, claimed: false, progress: 0, maxProgress: 5, level: 1, points: 200 },
-            { id: 'speed_demon_2', name: 'Speed Demon II', icon: '⚡', description: 'Complete 10 tasks in one day', unlocked: false, claimed: false, progress: 0, maxProgress: 10, level: 2, points: 400 },
-            { id: 'speed_demon_3', name: 'Speed Demon III', icon: '⚡', description: 'Complete 20 tasks in one day', unlocked: false, claimed: false, progress: 0, maxProgress: 20, level: 3, points: 800 },
+            { id: 'early_bird', name: 'Early Bird', icon: '🌅', description: 'Study before 8 AM', progress: 0, levels: [1, 5, 15], claimed: [false, false, false] },
+            { id: 'night_owl', name: 'Night Owl', icon: '🦉', description: 'Study after 10 PM', progress: 0, levels: [1, 5, 15], claimed: [false, false, false] },
+            { id: 'streak_master', name: 'Streak Master', icon: '🔥', description: 'Study consistently to build a streak', progress: 0, levels: [7, 30, 100], claimed: [false, false, false] },
+            { id: 'task_crusher', name: 'Task Crusher', icon: '✅', description: 'Complete tasks to earn stars', progress: 0, levels: [10, 50, 100], claimed: [false, false, false] },
+            { id: 'focus_master', name: 'Focus Master', icon: '🧠', description: 'Complete Pomodoro sessions', progress: 0, levels: [10, 25, 50], claimed: [false, false, false] },
+            { id: 'speed_demon', name: 'Speed Demon', icon: '⚡', description: 'Complete tasks in one day', progress: 0, levels: [5, 10, 20], claimed: [false, false, false] },
         ];
 
         // Get saved achievements from localStorage
         const saved = localStorage.getItem(`achievements_${user.uid}`);
         const savedAchievements = saved ? JSON.parse(saved) : [];
 
-        // Merge: keep existing progress, add new achievements
+        // Merge: keep existing progress if it has the new structure, else overwrite
         const merged = allAchievements.map(newAch => {
             const existing = savedAchievements.find((a: any) => a.id === newAch.id);
-            return existing || newAch;
+            if (existing && existing.levels && existing.claimed) {
+                return existing;
+            }
+            return newAch;
         });
 
         // Save merged achievements back to localStorage
@@ -283,131 +263,30 @@ export function Profile() {
         const completedTasks = parseInt(localStorage.getItem(`completedTasksCount_${user.uid}`) || '0');
         const studyStreak = parseInt(localStorage.getItem(`studyStreak_${user.uid}`) || '0');
         const pomodoroSessions = parseInt(localStorage.getItem('pomodoroSessions') || '0');
-
-
+        const earlyBirdCount = getTimeBasedAchievementCount(user.uid, 'earlyBird');
+        const nightOwlCount = getTimeBasedAchievementCount(user.uid, 'nightOwl');
+        const dailyTaskCount = getDailyTaskCount(user.uid);
 
         setAchievements((prev: any) => {
             const updated = [...prev];
             let hasChanges = false;
 
-            // Task Crusher - Update all levels
-            [
-                { id: 'task_crusher_1', max: 25 },
-                { id: 'task_crusher_2', max: 50 },
-                { id: 'task_crusher_3', max: 100 }
-            ].forEach(({ id, max }) => {
-                const achievement = updated.find((a: any) => a.id === id);
-                if (achievement) {
-                    const newProgress = Math.min(completedTasks, max);
-                    if (achievement.progress !== newProgress) {
-                        achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (completedTasks >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
-                        hasChanges = true;
-                    }
-                }
-            });
+            const updates = [
+                { id: 'task_crusher', value: completedTasks },
+                { id: 'focus_master', value: pomodoroSessions },
+                { id: 'streak_master', value: studyStreak },
+                { id: 'early_bird', value: earlyBirdCount },
+                { id: 'night_owl', value: nightOwlCount },
+                { id: 'speed_demon', value: dailyTaskCount }
+            ];
 
-            // Focus Master - Update all levels
-            [
-                { id: 'focus_master_1', max: 10 },
-                { id: 'focus_master_2', max: 25 },
-                { id: 'focus_master_3', max: 50 }
-            ].forEach(({ id, max }) => {
+            updates.forEach(({ id, value }) => {
                 const achievement = updated.find((a: any) => a.id === id);
                 if (achievement) {
-                    const newProgress = Math.min(pomodoroSessions, max);
+                    const max = achievement.levels[2];
+                    const newProgress = Math.min(value, max);
                     if (achievement.progress !== newProgress) {
                         achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (pomodoroSessions >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
-                        hasChanges = true;
-                    }
-                }
-            });
-
-            // Streak Master - Update all levels
-            [
-                { id: 'streak_master_1', max: 7 },
-                { id: 'streak_master_2', max: 30 },
-                { id: 'streak_master_3', max: 100 }
-            ].forEach(({ id, max }) => {
-                const achievement = updated.find((a: any) => a.id === id);
-                if (achievement) {
-                    const newProgress = Math.min(studyStreak, max);
-                    if (achievement.progress !== newProgress) {
-                        achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (studyStreak >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
-                        hasChanges = true;
-                    }
-                }
-            });
-
-            // Early Bird - Update all levels
-            const earlyBirdCount = getTimeBasedAchievementCount(user.uid, 'earlyBird');
-            [
-                { id: 'early_bird_1', max: 1 },
-                { id: 'early_bird_2', max: 5 },
-                { id: 'early_bird_3', max: 15 }
-            ].forEach(({ id, max }) => {
-                const achievement = updated.find((a: any) => a.id === id);
-                if (achievement) {
-                    const newProgress = Math.min(earlyBirdCount, max);
-                    if (achievement.progress !== newProgress) {
-                        achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (earlyBirdCount >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
-                        hasChanges = true;
-                    }
-                }
-            });
-
-            // Night Owl - Update all levels
-            const nightOwlCount = getTimeBasedAchievementCount(user.uid, 'nightOwl');
-            [
-                { id: 'night_owl_1', max: 1 },
-                { id: 'night_owl_2', max: 5 },
-                { id: 'night_owl_3', max: 15 }
-            ].forEach(({ id, max }) => {
-                const achievement = updated.find((a: any) => a.id === id);
-                if (achievement) {
-                    const newProgress = Math.min(nightOwlCount, max);
-                    if (achievement.progress !== newProgress) {
-                        achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (nightOwlCount >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
-                        hasChanges = true;
-                    }
-                }
-            });
-
-            // Speed Demon - Update all levels
-            const dailyTaskCount = getDailyTaskCount(user.uid);
-            [
-                { id: 'speed_demon_1', max: 5 },
-                { id: 'speed_demon_2', max: 10 },
-                { id: 'speed_demon_3', max: 20 }
-            ].forEach(({ id, max }) => {
-                const achievement = updated.find((a: any) => a.id === id);
-                if (achievement) {
-                    const newProgress = Math.min(dailyTaskCount, max);
-                    if (achievement.progress !== newProgress) {
-                        achievement.progress = newProgress;
-                        hasChanges = true;
-                    }
-                    if (dailyTaskCount >= max && !achievement.unlocked) {
-                        achievement.unlocked = true;
                         hasChanges = true;
                     }
                 }
@@ -491,48 +370,23 @@ export function Profile() {
 
 
 
-    // Claim achievement and unlock next level
+    // Claim achievement star
     const claimAchievement = useCallback((achievementId: string) => {
-
-
         if (!user) {
-
             return;
         }
 
         setAchievements((prev: any) => {
-
             const updated = [...prev];
             const achievement = updated.find((a: any) => a.id === achievementId);
 
-
-
-            if (achievement && achievement.unlocked && !achievement.claimed) {
-
-
-                // Mark as claimed
-                achievement.claimed = true;
-
-                // Award points (you can add points system later)
-                toast.success(`🎉 Claimed ${achievement.name}! +${achievement.points} points`);
-
-
-                // Find and unlock next level
-                const baseName = achievementId.replace(/_\d+$/, ''); // Remove _1, _2, _3
-                const currentLevel = achievement.level;
-                const nextLevel = currentLevel + 1;
-                const nextLevelId = `${baseName}_${nextLevel}`;
-
-
-
-                const nextAchievement = updated.find((a: any) => a.id === nextLevelId);
-                if (nextAchievement && !nextAchievement.unlocked) {
-                    toast.success(`🔓 ${nextAchievement.name} is now available!`);
+            if (achievement) {
+                const nextClaimableIndex = achievement.levels.findIndex((l: number, i: number) => achievement.progress >= l && !achievement.claimed[i]);
+                if (nextClaimableIndex !== -1) {
+                    achievement.claimed[nextClaimableIndex] = true;
+                    toast.success(`🎉 Claimed ${achievement.name} Star ${nextClaimableIndex + 1}!`);
+                    localStorage.setItem(`achievements_${user.uid}`, JSON.stringify(updated));
                 }
-
-                // Save to localStorage
-                localStorage.setItem(`achievements_${user.uid}`, JSON.stringify(updated));
-
             }
 
             return updated;
@@ -706,9 +560,9 @@ export function Profile() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className={`p-3 rounded-lg ${themeConfig.background} border dark:border-gray-700`}>
                                     <p className={`text-2xl font-bold ${themeConfig.text}`}>
-                                        {achievements.filter((a: any) => a.claimed).length}
+                                        {achievements.reduce((acc: number, a: any) => acc + a.claimed.filter(Boolean).length, 0)}
                                     </p>
-                                    <p className={`text-sm ${themeConfig.textSecondary}`}>Claimed Badges</p>
+                                    <p className={`text-sm ${themeConfig.textSecondary}`}>Claimed Stars</p>
                                 </div>
                                 <div className={`p-3 rounded-lg ${themeConfig.background} border dark:border-gray-700`}>
                                     <p className={`text-2xl font-bold ${themeConfig.text}`}>
@@ -793,7 +647,28 @@ export function Profile() {
             >
                 <div className="space-y-3">
                     {achievements.map((achievement: any, index: number) => {
-                        const progressPercentage = (achievement.progress / achievement.maxProgress) * 100;
+                        const maxProgress = achievement.levels[2];
+                        const progressPercentage = (achievement.progress / maxProgress) * 100;
+                        const starsUnlocked = achievement.levels.filter((l: number) => achievement.progress >= l).length;
+                        const hasUnclaimed = achievement.levels.findIndex((l: number, i: number) => achievement.progress >= l && !achievement.claimed[i]) !== -1;
+
+                        let cardStyle = `${themeConfig.background} border dark:border-gray-700 opacity-60`;
+                        let progressStyle = 'bg-gray-400';
+                        let buttonStyle = 'bg-gradient-to-r from-blue-500 to-purple-500 text-white';
+
+                        if (starsUnlocked === 3) {
+                            cardStyle = 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-400 dark:border-yellow-600';
+                            progressStyle = 'bg-gradient-to-r from-yellow-400 to-amber-500';
+                            buttonStyle = 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white';
+                        } else if (starsUnlocked === 2) {
+                            cardStyle = 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 border-red-400 dark:border-red-600';
+                            progressStyle = 'bg-gradient-to-r from-red-400 to-rose-500';
+                            buttonStyle = 'bg-gradient-to-r from-red-500 to-rose-600 text-white';
+                        } else if (starsUnlocked === 1) {
+                            cardStyle = 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-blue-400 dark:border-blue-600';
+                            progressStyle = 'bg-gradient-to-r from-blue-500 to-purple-500';
+                            buttonStyle = 'bg-gradient-to-r from-blue-500 to-purple-600 text-white';
+                        }
 
                         return (
                             <motion.div
@@ -801,34 +676,35 @@ export function Profile() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className={`p-4 rounded-xl border-2 ${achievement.claimed
-                                    ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-400'
-                                    : achievement.unlocked
-                                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-400'
-                                        : `${themeConfig.background} border dark:border-gray-700 opacity-60`
-                                    }`}
+                                className={`p-4 rounded-xl border-2 transition-colors duration-300 ${cardStyle}`}
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center gap-3">
                                         <span className="text-4xl">{achievement.icon}</span>
                                         <div>
-                                            <h4 className={`font-bold ${themeConfig.text}`}>
+                                            <h4 className={`font-bold ${themeConfig.text} flex items-center gap-2`}>
                                                 {achievement.name}
-                                                {achievement.claimed && <span className="ml-2 text-yellow-500">✓</span>}
+                                                <div className="flex gap-1 ml-2">
+                                                    {[0, 1, 2].map(starIdx => (
+                                                        <span key={starIdx} className={`text-lg ${starIdx < starsUnlocked ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}`}>
+                                                            ★
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </h4>
                                             <p className={`text-sm ${themeConfig.textSecondary}`}>
-                                                {achievement.description}
+                                                {achievement.description} ({achievement.levels.join(' / ')} required)
                                             </p>
                                         </div>
                                     </div>
-                                    {achievement.unlocked && !achievement.claimed && (
+                                    {hasUnclaimed && (
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => claimAchievement(achievement.id)}
-                                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium text-sm"
+                                            className={`px-4 py-2 rounded-lg font-medium text-sm shadow-md ${buttonStyle}`}
                                         >
-                                            Claim
+                                            Claim Star
                                         </motion.button>
                                     )}
                                 </div>
@@ -836,22 +712,21 @@ export function Profile() {
                                 <div className="space-y-1">
                                     <div className="flex justify-between text-xs">
                                         <span className={themeConfig.textSecondary}>Progress</span>
-                                        <span className={`font-semibold ${achievement.unlocked ? 'text-green-600' : 'text-gray-600'}`}>
-                                            {achievement.progress}/{achievement.maxProgress}
+                                        <span className={`font-semibold ${starsUnlocked > 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                                            {achievement.progress}/{maxProgress}
                                         </span>
                                     </div>
-                                    <div className={`w-full ${themeConfig.background} rounded-full h-2`}>
+                                    <div className={`w-full ${themeConfig.background} rounded-full h-2 relative`}>
                                         <motion.div
-                                            className={`h-2 rounded-full ${achievement.claimed
-                                                ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
-                                                : achievement.unlocked
-                                                    ? 'bg-gradient-to-r from-blue-500 to-purple-500'
-                                                    : 'bg-gray-400'
-                                                }`}
+                                            className={`h-2 rounded-full ${progressStyle}`}
                                             initial={{ width: 0 }}
                                             animate={{ width: `${progressPercentage}%` }}
                                             transition={{ duration: 1, delay: index * 0.1 }}
                                         />
+                                        {/* Markers for levels */}
+                                        {[0, 1].map(lvlIdx => (
+                                            <div key={lvlIdx} className="absolute top-0 bottom-0 w-1 bg-white/60 dark:bg-black/60 rounded-full z-10" style={{ left: `${(achievement.levels[lvlIdx] / maxProgress) * 100}%` }} />
+                                        ))}
                                     </div>
                                 </div>
                             </motion.div>
@@ -860,7 +735,7 @@ export function Profile() {
                 </div>
                 <div className={`mt-4 p-3 rounded-lg ${themeConfig.background} border dark:border-gray-700 text-center`}>
                     <p className={`text-sm ${themeConfig.textSecondary}`}>
-                        {achievements.filter((a: any) => a.claimed).length} / {achievements.length} Claimed
+                        {achievements.reduce((acc: number, a: any) => acc + a.claimed.filter(Boolean).length, 0)} / {achievements.length * 3} Stars Claimed
                     </p>
                 </div>
             </SectionCard>

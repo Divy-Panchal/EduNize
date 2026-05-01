@@ -202,71 +202,7 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      <motion.section
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.05 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-500 p-5 md:p-7 text-white shadow-xl"
-      >
-        <div className="absolute inset-0 dashboard-grid-pattern opacity-30" />
-        <motion.div
-          className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-white/20 blur-2xl"
-          animate={{ scale: [1, 1.15, 1], x: [0, -10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute -bottom-20 left-1/3 h-52 w-52 rounded-full bg-cyan-200/20 blur-3xl"
-          animate={{ scale: [1.1, 0.95, 1.1], y: [0, -10, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-        />
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5 items-stretch">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-blue-50 mb-5">
-              <Sparkles className="w-4 h-4" />
-              Today command center
-            </div>
-            <h2 className="text-2xl md:text-4xl font-bold leading-tight max-w-xl">
-              Stay calm, choose one thing, and keep your day moving.
-            </h2>
-            <p className="mt-3 text-sm md:text-base text-blue-50/90 max-w-2xl">
-              EduNize brings tasks, classes, study time, and progress into one simple daily rhythm.
-            </p>
-            <div className="mt-5 grid grid-cols-3 gap-3 max-w-xl">
-              {[
-                { label: 'Task flow', value: `${Math.round(completionRate)}%` },
-                { label: 'Study goal', value: `${Math.round(studyProgress)}%` },
-                { label: 'Focus goal', value: `${Math.round(focusProgress)}%` },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl bg-white/12 p-3 backdrop-blur-sm">
-                  <p className="text-lg font-bold">{item.value}</p>
-                  <p className="text-[11px] text-blue-50/80">{item.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-white/14 p-4 backdrop-blur-md border border-white/20">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-50/80">{nextAction.label}</p>
-            <h3 className="mt-2 text-xl font-bold">{nextAction.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-blue-50/85">{nextAction.description}</p>
-            <div className="mt-5 space-y-2">
-              <div className="h-2 rounded-full bg-white/15 overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-white"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.max(18, Math.min(100, completionRate || studyProgress || 34))}%` }}
-                  transition={{ duration: 0.9, delay: 0.2 }}
-                />
-              </div>
-              <Link to={nextAction.path} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
-                {nextAction.action}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </motion.section>
 
       {/* Quick Actions */}
       <motion.div
