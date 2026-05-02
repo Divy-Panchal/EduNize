@@ -10,7 +10,9 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   GoogleAuthProvider,
+  getRedirectResult,
   signInWithPopup,
+  signInWithRedirect,
   setPersistence,
   browserLocalPersistence
 } from 'firebase/auth';
@@ -34,6 +36,16 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const createGoogleProvider = () => {
+  const provider = new GoogleAuthProvider();
+
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+
+  return provider;
+};
 
 const clearUserData = (userId?: string) => {
   localStorage.removeItem('currentUserId');
@@ -67,6 +79,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // 🔥 IMPORTANT FIX FOR CAPACITOR WEBVIEW
     setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          toast.dismiss('google-redirect');
+          toast.success('Signed in with Google!');
+        }
+      })
+      .catch((error) => {
+        toast.dismiss('google-redirect');
+        logger.error('Google redirect sign-in error', error);
+        toast.error(error?.message || 'Google Sign-In failed');
+      });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -131,21 +156,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // ✅ FINAL WORKING GOOGLE LOGIN (NO REDIRECT)
   const signInWithGoogle = async () => {
+    const provider = createGoogleProvider();
+
     try {
-      const provider = new GoogleAuthProvider();
-
-      provider.setCustomParameters({
-        prompt: "select_account"
-      });
-
       await signInWithPopup(auth, provider);
 
       toast.success("Signed in with Google!");
-    } catch (error) {
-      console.error("Google Sign-In error:", error);
-      toast.error("Google Sign-In failed");
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-blocked') {
+        logger.warn('Google popup was blocked, falling back to redirect sign-in');
+        toast.loading('Opening Google Sign-In...', { id: 'google-redirect' });
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      logger.error("Google Sign-In error:", error);
+      toast.error(error?.message || "Google Sign-In failed");
       throw error;
     }
   };

@@ -22,12 +22,27 @@ const secondaryItems = [
 
 export function Navigation() {
   const location = useLocation();
-  const { themeConfig } = useTheme();
+  const { theme, themeConfig } = useTheme();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const isSecondaryActive = secondaryItems.some((item) => location.pathname === item.path);
+  const isDark = theme === 'dark';
+
+  const navShellClass = isDark
+    ? 'bg-[#12101f] border-white/10 shadow-[0_18px_44px_rgba(0,0,0,0.38)]'
+    : 'bg-white border-gray-200/80 shadow-[0_18px_44px_rgba(15,23,42,0.14)]';
+  const activePillClass = isDark
+    ? 'bg-white shadow-[0_8px_22px_rgba(0,0,0,0.28)]'
+    : 'bg-[#12101f] shadow-[0_8px_22px_rgba(15,23,42,0.24)]';
+  const activeContentClass = isDark ? 'text-[#12101f]' : 'text-white';
+  const inactiveIconClass = isDark
+    ? 'text-slate-400 group-hover:text-white'
+    : 'text-slate-500 group-hover:text-[#12101f]';
+  const hoverPillClass = isDark
+    ? 'bg-white/10'
+    : 'bg-slate-100';
 
   const renderNavItem = (item: typeof primaryItems[number]) => {
-    const isActive = location.pathname === item.path;
+    const isActive = !isMoreOpen && location.pathname === item.path;
     const Icon = item.icon;
 
     return (
@@ -39,48 +54,46 @@ export function Navigation() {
         aria-current={isActive ? 'page' : undefined}
       >
         <motion.div
-          className="relative flex flex-col items-center justify-center px-3 sm:px-4 md:px-5 py-2 min-w-[58px]"
-          whileTap={{ scale: 0.95 }}
-          transition={{ duration: 0.1 }}
+          className={`relative flex h-12 items-center justify-center overflow-hidden rounded-full px-3 transition-[width] duration-300 ease-out ${isActive ? `w-[116px] sm:w-[126px] ${activeContentClass}` : 'w-12 sm:w-14'}`}
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         >
           <AnimatePresence>
             {isActive && (
               <motion.div
                 layoutId="navPill"
-                className="absolute inset-0 bg-blue-600 dark:bg-blue-500 rounded-full shadow-md"
-                initial={{ opacity: 0, scale: 0.8 }}
+                className={`absolute inset-0 rounded-full ${activePillClass}`}
+                initial={{ opacity: 0, scale: 0.86 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
           </AnimatePresence>
 
           {!isActive && (
-            <div className="absolute inset-0 rounded-full bg-gray-100 dark:bg-gray-700/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className={`absolute inset-0 rounded-full ${hoverPillClass} opacity-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 scale-75`} />
           )}
 
           <motion.div
-            className="relative z-10"
-            animate={{ y: isActive ? -2 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="relative z-10 flex items-center justify-center"
+            animate={{ x: isActive ? 0 : 0 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 24 }}
           >
             <Icon
-              className={`w-5 h-5 transition-all duration-300 ease-out ${isActive
-                ? 'text-white'
-                : `${themeConfig.textSecondary} group-hover:${themeConfig.text}`
-                }`}
+              className={`h-5 w-5 shrink-0 transition-colors duration-300 ease-out ${isActive ? 'text-current' : inactiveIconClass}`}
+              strokeWidth={isActive ? 2.8 : 2.2}
             />
           </motion.div>
 
           <AnimatePresence>
             {isActive && (
               <motion.span
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="relative z-10 text-[10px] font-semibold text-white mt-1"
+                initial={{ opacity: 0, x: -8, width: 0 }}
+                animate={{ opacity: 1, x: 0, width: 'auto' }}
+                exit={{ opacity: 0, x: -8, width: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                className="relative z-10 ml-2 overflow-hidden whitespace-nowrap text-sm font-bold text-current"
               >
                 {item.label}
               </motion.span>
@@ -136,14 +149,14 @@ export function Navigation() {
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMoreOpen(false)}
-                      className={`flex items-center gap-3 rounded-xl p-3 transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      className={`flex items-center gap-3 rounded-xl p-3 transition-all ${isActive ? 'bg-slate-900 text-white shadow-md dark:bg-white dark:text-slate-950' : 'hover:bg-slate-100 dark:hover:bg-gray-700'}`}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-white/15' : 'bg-blue-50 dark:bg-blue-900/40'}`}>
-                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-blue-600 dark:text-blue-300'}`} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-white/15 dark:bg-slate-950/10' : 'bg-slate-100 dark:bg-blue-900/40'}`}>
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-white dark:text-slate-950' : 'text-blue-700 dark:text-blue-300'}`} strokeWidth={2.5} />
                       </div>
                       <div className="min-w-0">
-                        <p className={`text-sm font-semibold ${isActive ? 'text-white' : themeConfig.text}`}>{item.label}</p>
-                        <p className={`text-xs ${isActive ? 'text-blue-100' : themeConfig.textSecondary}`}>{item.description}</p>
+                        <p className={`text-sm font-semibold ${isActive ? 'text-white dark:text-slate-950' : themeConfig.text}`}>{item.label}</p>
+                        <p className={`text-xs ${isActive ? 'text-slate-200 dark:text-slate-700' : themeConfig.textSecondary}`}>{item.description}</p>
                       </div>
                     </Link>
                   );
@@ -159,7 +172,7 @@ export function Navigation() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className={`flex items-center gap-1 sm:gap-2 ${themeConfig.card} backdrop-blur-lg rounded-full shadow-lg border ${themeConfig.text === 'text-white' ? 'border-gray-700/30' : 'border-gray-200/30'} px-3 sm:px-4 py-3 w-auto max-w-[98%] sm:max-w-[95%] md:max-w-5xl`}
+        className={`flex w-auto max-w-[98%] items-center gap-1 rounded-full border px-3 py-3 backdrop-blur-xl sm:max-w-[95%] sm:gap-2 sm:px-4 md:max-w-5xl ${navShellClass}`}
       >
         {primaryItems.map(renderNavItem)}
         <button
@@ -170,34 +183,34 @@ export function Navigation() {
           aria-expanded={isMoreOpen}
         >
           <motion.div
-            className="relative flex flex-col items-center justify-center px-3 sm:px-4 md:px-5 py-2 min-w-[58px]"
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.1 }}
+            className={`relative flex h-12 items-center justify-center overflow-hidden rounded-full px-3 transition-[width] duration-300 ease-out ${isMoreOpen || isSecondaryActive ? `w-[104px] sm:w-[112px] ${activeContentClass}` : 'w-12 sm:w-14'}`}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
             <AnimatePresence>
               {(isMoreOpen || isSecondaryActive) && (
                 <motion.div
                   layoutId="navPillMore"
-                  className="absolute inset-0 bg-blue-600 dark:bg-blue-500 rounded-full shadow-md"
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  className={`absolute inset-0 rounded-full ${activePillClass}`}
+                  initial={{ opacity: 0, scale: 0.86 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
                 />
               )}
             </AnimatePresence>
             {!isMoreOpen && !isSecondaryActive && (
-              <div className="absolute inset-0 rounded-full bg-gray-100 dark:bg-gray-700/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className={`absolute inset-0 rounded-full ${hoverPillClass} opacity-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 scale-75`} />
             )}
-            <MoreHorizontal className={`relative z-10 w-5 h-5 ${isMoreOpen || isSecondaryActive ? 'text-white' : themeConfig.textSecondary}`} />
+            <MoreHorizontal className={`relative z-10 h-5 w-5 shrink-0 transition-colors duration-300 ${isMoreOpen || isSecondaryActive ? 'text-current' : inactiveIconClass}`} strokeWidth={isMoreOpen || isSecondaryActive ? 2.8 : 2.2} />
             <AnimatePresence>
               {(isMoreOpen || isSecondaryActive) && (
                 <motion.span
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
+                  initial={{ opacity: 0, x: -8, width: 0 }}
+                  animate={{ opacity: 1, x: 0, width: 'auto' }}
+                  exit={{ opacity: 0, x: -8, width: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="relative z-10 text-[10px] font-semibold text-white mt-1"
+                  className="relative z-10 ml-2 overflow-hidden whitespace-nowrap text-sm font-bold text-current"
                 >
                   More
                 </motion.span>
