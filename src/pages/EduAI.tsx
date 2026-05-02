@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, RotateCcw, Loader2, History, Menu, Paperclip, X, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -48,7 +49,8 @@ export function EduAI() {
         clearCurrentConversation
     } = useChatHistory();
     const { tasks, addTask } = useTask();
-    const { switchMode, toggleTimer } = usePomodoro();
+    const { switchMode, toggleTimer, setTimeLeft } = usePomodoro();
+    const navigate = useNavigate();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -121,30 +123,43 @@ export function EduAI() {
             let response: string;
             let actionPerformed: string | undefined;
 
+            const today = new Date();
             const appContext = `
-Date/Time: ${new Date().toLocaleString()}
+Today's Date: ${today.toISOString().split('T')[0]} (${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})
+Current Time: ${today.toLocaleTimeString()}
 Active Tasks: ${tasks.filter(t => !t.completed).length} pending
             `;
 
             const toolExecutors = {
                 create_task: async (args: any) => {
+                    const dueDate = args.due_date || new Date().toISOString().split('T')[0];
+                    const category = args.category || 'General';
+                    const priority = args.priority || 'medium';
                     await addTask({
                         title: args.title,
                         description: '',
                         completed: false,
-                        priority: args.priority || 'medium',
-                        dueDate: new Date().toISOString().split('T')[0],
-                        category: args.category || 'General'
+                        priority,
+                        dueDate,
+                        category
                     });
                     toast.success(`Agent added task: ${args.title}`);
-                    return `Task "${args.title}" created successfully.`;
+                    return `Task "${args.title}" created successfully with ${priority} priority, due ${dueDate}, category: ${category}.`;
                 },
                 start_pomodoro: async (args: any) => {
                     const mode = args.mode || 'work';
+                    const customMinutes = args.duration_minutes;
                     switchMode(mode as 'work' | 'short' | 'long', true);
+                    // If a custom duration was provided, override the timer
+                    if (customMinutes && customMinutes > 0) {
+                        setTimeout(() => setTimeLeft(Math.round(customMinutes * 60)), 50);
+                    }
                     // Auto-start the timer after switching mode
-                    setTimeout(() => toggleTimer(), 100);
-                    return `Pomodoro timer started in ${mode} mode.`;
+                    setTimeout(() => toggleTimer(), 150);
+                    // Navigate to the Pomodoro page so user sees the timer
+                    setTimeout(() => navigate('/pomodoro'), 500);
+                    const durationText = customMinutes ? `${customMinutes} minutes` : `${mode} mode`;
+                    return `Pomodoro timer started for ${durationText}. Navigating to timer...`;
                 }
             };
 

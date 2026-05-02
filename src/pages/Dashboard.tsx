@@ -24,6 +24,7 @@ import { useDailyStats } from '../context/DailyStatsContext';
 import { DashboardProfile } from '../components/DashboardProfile';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { AddTaskModal } from '../components/AddTaskModal';
 
 const getStoredUserData = (userId: string | undefined) => {
   const defaultData = {
@@ -56,6 +57,7 @@ export function Dashboard() {
   const { notifications, addNotification } = useNotification();
   const { user } = useAuth();
   const [userData, setUserData] = useState(() => getStoredUserData(user?.uid));
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
   // Update user data when user changes
   useEffect(() => {
@@ -250,7 +252,7 @@ export function Dashboard() {
             {
               icon: Zap,
               label: 'Add Task',
-              path: '/tasks',
+              path: '__add_task__',
               lightBg: 'bg-orange-50',
               darkBg: 'bg-orange-900',
               lightIcon: 'text-orange-600',
@@ -264,24 +266,36 @@ export function Dashboard() {
             const iconColor = isDark ? action.darkIcon : action.lightIcon;
             const hoverBg = isDark ? action.darkHover : action.lightHover;
 
+            const cardContent = (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm cursor-pointer`}
+              >
+                <div className={`p-2 rounded-lg ${iconColor}`}>
+                  <action.icon className="w-6 h-6" />
+                </div>
+                <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
+                  {action.label}
+                </span>
+              </motion.div>
+            );
+
+            if (action.path === '__add_task__') {
+              return (
+                <div key={action.label} onClick={() => setShowAddTaskModal(true)}>
+                  {cardContent}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={action.label}
                 to={action.path}
                 className="block"
               >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm`}
-                >
-                  <div className={`p-2 rounded-lg ${iconColor}`}>
-                    <action.icon className="w-6 h-6" />
-                  </div>
-                  <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
-                    {action.label}
-                  </span>
-                </motion.div>
+                {cardContent}
               </Link>
             );
           })}
@@ -513,6 +527,12 @@ export function Dashboard() {
         </motion.div>
       </div>
       <div className="h-32 md:h-0"></div>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showAddTaskModal}
+        onClose={() => setShowAddTaskModal(false)}
+      />
     </div>
   );
 }

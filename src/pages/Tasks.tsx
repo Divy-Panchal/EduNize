@@ -10,10 +10,11 @@ import toast from 'react-hot-toast';
 
 export function Tasks() {
   const { tasks, toggleTask, deleteTask } = useTask();
-  const { themeConfig } = useTheme();
+  const { theme, themeConfig } = useTheme();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
+  const isDark = theme === 'dark';
 
   const completedTasksCount = parseInt(localStorage.getItem(`completedTasksCount_${user?.uid}`) || '0');
   const studyStreak = parseInt(localStorage.getItem(`studyStreak_${user?.uid}`) || '0');
@@ -58,7 +59,7 @@ export function Tasks() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`${themeConfig.card} p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700`}
+        className={`${themeConfig.card} p-3 md:p-4 rounded-xl shadow-sm border ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
       >
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -68,7 +69,7 @@ export function Tasks() {
               placeholder="Search tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-8 md:pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} dark:border-gray-600`}
+              className={`w-full pl-8 md:pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} ${isDark ? 'border-gray-600' : 'border-gray-200'}`}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -76,7 +77,7 @@ export function Tasks() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} dark:border-gray-600`}
+              className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} ${isDark ? 'border-gray-600' : 'border-gray-200'}`}
             >
               <option value="all">All Priorities</option>
               <option value="high">High</option>
@@ -112,10 +113,10 @@ export function Tasks() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`${themeConfig.card} p-6 md:p-10 rounded-2xl border border-gray-100 dark:border-gray-700 max-w-3xl mx-auto shadow-sm`}
+          className={`${themeConfig.card} p-6 md:p-10 rounded-2xl border ${isDark ? 'border-gray-700' : 'border-gray-100'} max-w-3xl mx-auto shadow-sm`}
         >
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-6">
+            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${isDark ? 'bg-green-900/30' : 'bg-green-100'} mb-6`}>
               <CheckCircle2 className="w-10 h-10 text-green-500" />
             </div>
             <h2 className={`text-2xl font-bold ${themeConfig.text} mb-3`}>All caught up!</h2>
@@ -125,22 +126,22 @@ export function Tasks() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-            <div className={`p-6 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-center transform transition-transform hover:scale-105 duration-200`}>
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
               <Award className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{completedTasksCount}</div>
-              <div className="text-sm text-blue-800 dark:text-blue-300 font-medium">Tasks Crushed</div>
+              <div className={`text-3xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'} mb-1`}>{completedTasksCount}</div>
+              <div className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'} font-medium`}>Tasks Crushed</div>
             </div>
             
-            <div className={`p-6 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-center transform transition-transform hover:scale-105 duration-200`}>
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
               <Flame className="w-8 h-8 text-orange-500 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">{studyStreak}</div>
-              <div className="text-sm text-orange-800 dark:text-orange-300 font-medium">Day Streak</div>
+              <div className={`text-3xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'} mb-1`}>{studyStreak}</div>
+              <div className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-800'} font-medium`}>Day Streak</div>
             </div>
 
-            <div className={`p-6 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-center transform transition-transform hover:scale-105 duration-200`}>
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
               <Timer className="w-8 h-8 text-purple-500 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">{pomodoroSessions}</div>
-              <div className="text-sm text-purple-800 dark:text-purple-300 font-medium">Focus Sessions</div>
+              <div className={`text-3xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'} mb-1`}>{pomodoroSessions}</div>
+              <div className={`text-sm ${isDark ? 'text-purple-300' : 'text-purple-800'} font-medium`}>Focus Sessions</div>
             </div>
           </div>
         </motion.div>

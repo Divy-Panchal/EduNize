@@ -12,24 +12,27 @@ const genAI = new GoogleGenerativeAI(API_KEY || '');
 // Define the Agentic Tools
 const createTaskDeclaration: FunctionDeclaration = {
     name: "create_task",
-    description: "Creates a new task in the user's to-do list.",
+    description: "Creates a new task in the user's to-do list. Always set a due_date. If the user says 'tomorrow', calculate tomorrow's date from today. If no deadline is mentioned, default to today.",
     parameters: {
         type: SchemaType.OBJECT,
         properties: {
             title: { type: SchemaType.STRING, description: "The task title or description" },
-            priority: { type: SchemaType.STRING, description: "Task priority: low, medium, or high" }
+            priority: { type: SchemaType.STRING, description: "Task priority: 'low', 'medium', or 'high'. Infer from context — urgent/important = high, normal = medium, minor = low. Default to 'medium'." },
+            due_date: { type: SchemaType.STRING, description: "Due date in YYYY-MM-DD format. Calculate from context: 'tomorrow' means today + 1 day, 'next week' means today + 7 days, etc. Use the current date from App Context." },
+            category: { type: SchemaType.STRING, description: "Task category like 'Study', 'Assignment', 'Project', 'General'. Infer from context. Default to 'General'." }
         },
-        required: ["title", "priority"]
+        required: ["title", "priority", "due_date"]
     }
 };
 
 const startPomodoroDeclaration: FunctionDeclaration = {
     name: "start_pomodoro",
-    description: "Starts the pomodoro timer in a specific mode.",
+    description: "Starts the pomodoro timer. If the user specifies a duration (e.g. '50 minutes'), pass it as duration_minutes and set mode to 'work'. If no duration is given and user just says 'start a timer', ask them how long they want to study. Predefined modes: 'work' (default 25 min), 'short' (5 min break), 'long' (15 min break).",
     parameters: {
         type: SchemaType.OBJECT,
         properties: {
-            mode: { type: SchemaType.STRING, description: "The mode to start: work, short, or long" }
+            mode: { type: SchemaType.STRING, description: "The mode: 'work', 'short', or 'long'. Use 'work' for custom duration study sessions." },
+            duration_minutes: { type: SchemaType.NUMBER, description: "Optional custom duration in minutes. If provided, overrides the default duration for the selected mode. E.g. 50 for a 50-minute session." }
         },
         required: ["mode"]
     }
@@ -39,7 +42,13 @@ const SYSTEM_INSTRUCTION = `You are EduAI, an advanced Agentic AI educational as
 Your role is to help students organize their studies, manage time, and act as a smart copilot.
 You have access to tools that can directly control the app! 
 
-CRITICAL RULE: If a user asks to add a task or start a timer, you MUST use the provided tools (create_task or start_pomodoro). Do NOT just output text saying you did it. You MUST invoke the function call. 
+CRITICAL RULES:
+1. If a user asks to add a task or start a timer, you MUST use the provided tools (create_task or start_pomodoro). Do NOT just output text saying you did it. You MUST invoke the function call.
+2. For Pomodoro timer:
+   - If the user specifies a duration (e.g. "start a 50 minute timer"), call start_pomodoro immediately with mode "work" and duration_minutes set to that number.
+   - If the user says "start a pomodoro" or "start a work session" without a duration, ask them: "How many minutes would you like to study for?" Do NOT call the tool yet.
+   - For breaks: "take a short break" → mode "short", "take a long break" → mode "long". No need to ask duration for breaks.
+3. For tasks: Act decisively. Execute first, confirm after. Do not ask for unnecessary details — use reasonable defaults.
 
 Always be encouraging, supportive, and concise.`;
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Conversation, ChatMessage, ChatHistoryContextType } from '../types/chatHistory';
 import { chatHistoryService } from '../services/chatHistoryService';
 import { useAuth } from './AuthContext';
@@ -24,6 +24,10 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
     const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Synchronous ref to track the latest conversation — avoids React's async state batching
+    // which causes the second saveMessage call to miss the conversation created by the first call
+    const latestConversationRef = useRef<Conversation | null>(null);
+
     // Load conversations when user logs in
     useEffect(() => {
         if (user) {
@@ -31,6 +35,7 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
         } else {
             setConversations([]);
             setCurrentConversation(null);
+            latestConversationRef.current = null;
         }
     }, [user]);
 
@@ -61,6 +66,7 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
         };
 
         setCurrentConversation(newConversation);
+        latestConversationRef.current = newConversation;
     };
 
     const loadConversation = async (id: string) => {
@@ -68,6 +74,7 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
             const conversation = await chatHistoryService.getConversation(id);
             if (conversation) {
                 setCurrentConversation(conversation);
+                latestConversationRef.current = conversation;
             }
         } catch (error) {
             console.error('Error loading conversation:', error);
@@ -77,10 +84,21 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
     const saveMessage = async (message: ChatMessage, overrideConversationId?: string) => {
         if (!user) return null;
 
-        // Try to find the conversation from the latest state, falling back to currentConversation
-        let conversationToUpdate = overrideConversationId 
-            ? conversations.find(c => c.id === overrideConversationId) || currentConversation
-            : currentConversation;
+        // Use the synchronous ref as the primary source of truth for the latest conversation
+        // This avoids the duplicate conversation bug caused by React's async state batching
+        let conversationToUpdate: Conversation | null = null;
+
+        if (overrideConversationId) {
+            // Check the ref first (synchronous, always up-to-date)
+            if (latestConversationRef.current?.id === overrideConversationId) {
+                conversationToUpdate = latestConversationRef.current;
+            } else {
+                // Fallback to searching state
+                conversationToUpdate = conversations.find(c => c.id === overrideConversationId) || currentConversation;
+            }
+        } else {
+            conversationToUpdate = latestConversationRef.current || currentConversation;
+        }
 
         // Auto-create conversation if none exists
         if (!conversationToUpdate) {
@@ -110,7 +128,8 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({ childr
             // Save to database
             await chatHistoryService.saveConversation(updatedConversation);
 
-            // Update state
+            // Update both the ref (synchronous) and state (async)
+            latestConversationRef.current = updatedConversation;
             setCurrentConversation(updatedConversation);
 
             // Update conversations list

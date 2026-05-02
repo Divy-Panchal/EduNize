@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, History, X } from 'lucide-react';
 import { useChatHistory } from '../../context/ChatHistoryContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ConversationList } from './ConversationList';
 
 interface HistorySidebarProps {
@@ -18,6 +19,8 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         loadConversation,
         deleteConversation
     } = useChatHistory();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     const handleNewChat = () => {
         createNewConversation();
@@ -33,6 +36,12 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         }
     };
 
+    const sidebarBg = isDark ? 'bg-gray-900' : 'bg-white';
+    const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
+    const headerTextColor = isDark ? 'text-gray-200' : 'text-gray-800';
+    const closeButtonHover = isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100';
+    const closeButtonText = isDark ? 'text-gray-400' : 'text-gray-600';
+
     // Desktop sidebar
     if (!isMobile) {
         return (
@@ -40,22 +49,22 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: isOpen ? 320 : 0, opacity: isOpen ? 1 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="h-full bg-white dark:bg-gray-900 border-r dark:border-gray-700 overflow-hidden flex flex-col"
+                className={`h-full ${sidebarBg} border-r ${borderColor} overflow-hidden flex flex-col`}
             >
                 {isOpen && (
                     <>
                         {/* Header */}
-                        <div className="p-4 border-b dark:border-gray-700">
+                        <div className={`p-4 border-b ${borderColor}`}>
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                    <History size={20} className="text-blue-600" />
-                                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                    <History size={20} className="text-blue-500" />
+                                    <h2 className={`text-lg font-semibold ${headerTextColor}`}>
                                         Chat History
                                     </h2>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                    className={`p-1 rounded-md ${closeButtonHover} ${closeButtonText}`}
                                 >
                                     <X size={18} />
                                 </button>
@@ -103,20 +112,20 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                 initial={{ x: '-100%' }}
                 animate={{ x: isOpen ? 0 : '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed left-0 top-0 bottom-0 w-80 bg-white dark:bg-gray-900 z-50 flex flex-col shadow-2xl"
+                className={`fixed left-0 top-0 bottom-0 w-80 ${sidebarBg} z-50 flex flex-col shadow-2xl border-r ${borderColor}`}
             >
                 {/* Header */}
-                <div className="p-4 border-b dark:border-gray-700">
+                <div className={`p-4 border-b ${borderColor}`}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <History size={20} className="text-blue-600" />
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                            <History size={20} className="text-blue-500" />
+                            <h2 className={`text-lg font-semibold ${headerTextColor}`}>
                                 Chat History
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                            className={`p-1 rounded-md ${closeButtonHover} ${closeButtonText}`}
                         >
                             <X size={18} />
                         </button>
