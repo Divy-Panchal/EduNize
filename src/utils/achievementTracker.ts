@@ -18,31 +18,37 @@ export const trackEarlyBirdStudy = (userId: string) => {
 };
 
 export const updateStudyStreak = (userId: string) => {
-    const dailyStatsKey = `dailyStats_${userId}`;
-    const data = localStorage.getItem(dailyStatsKey);
+    const streakKey = `studyStreak_${userId}`;
+    const lastDateKey = `lastStudyDate_${userId}`;
 
-    if (data) {
-        const stats = JSON.parse(data);
-        const today = new Date().toISOString().split('T')[0];
-        const lastStudyDate = stats.lastStudyDate;
+    const currentStreakStr = localStorage.getItem(streakKey);
+    const lastStudyDate = localStorage.getItem(lastDateKey);
+    const today = new Date().toISOString().split('T')[0];
 
-        if (lastStudyDate) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
+    let newStreak = parseInt(currentStreakStr || '0', 10);
 
-            if (lastStudyDate === yesterdayStr) {
-                // Continuing streak
-                stats.studyStreak = (stats.studyStreak || 0) + 1;
-            } else if (lastStudyDate !== today) {
-                // Streak broken
-                stats.studyStreak = 1;
-            }
-        } else {
-            stats.studyStreak = 1;
+    if (lastStudyDate) {
+        if (lastStudyDate === today) {
+            // Already tracked today, do nothing
+            return;
         }
 
-        stats.lastStudyDate = today;
-        localStorage.setItem(dailyStatsKey, JSON.stringify(stats));
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (lastStudyDate === yesterdayStr) {
+            // Continuing streak
+            newStreak += 1;
+        } else {
+            // Streak broken
+            newStreak = 1;
+        }
+    } else {
+        // First time studying
+        newStreak = 1;
     }
+
+    localStorage.setItem(streakKey, newStreak.toString());
+    localStorage.setItem(lastDateKey, today);
 };

@@ -194,6 +194,21 @@
   background: linear-gradient(135deg, #5a9fd4 0%, #4a8fc4 50%, #3a7fb4 100%);
 }
 
+.auth-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+.dashboard-grid-pattern {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.24) 0, transparent 24%),
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: auto, 36px 36px, 36px 36px;
+}
+
 /* Illustration container */
 .illustration-container {
   position: relative;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { getTimeOfDay, updateTimeBasedAchievements, updateDailyTaskCount } from '../utils/achievementHelpers';
+import { updateStudyStreak } from '../utils/achievementTracker';
 import { FirestoreService } from '../services/firestoreService';
 import toast from 'react-hot-toast';
 
@@ -14,6 +15,7 @@ export interface Task {
   category: string;
   image?: string;
   createdAt: string;
+  completedAt?: string;
 }
 
 interface TaskContextType {
@@ -134,6 +136,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
         // Track daily task completion (Speed Demon)
         updateDailyTaskCount(user.uid, true);
+
+        // Update global study streak
+        updateStudyStreak(user.uid);
       } else if (!willBeCompleted && wasCompleted) {
         // Decrementing when uncompleting a task
         const newCount = Math.max(0, currentCount - 1); // Prevent negative counts
@@ -150,7 +155,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
       // Update task in Firestore
       const taskService = new FirestoreService<Task>(user.uid, 'tasks');
-      await taskService.updateDocument(id, { completed: !task.completed });
+      const updateData: Partial<Task> = { completed: willBeCompleted };
+      
+      if (willBeCompleted) {
+        updateData.completedAt = new Date().toISOString();
+      } else {
+        // We use an empty string or null conceptually, Firestore might ignore undefined, so let's use an empty string to clear it
+        updateData.completedAt = '';
+      }
+      
+      await taskService.updateDocument(id, updateData);
     } catch (error) {
       console.error('Failed to toggle task:', error);
       toast.error('Failed to update task. Please try again.');

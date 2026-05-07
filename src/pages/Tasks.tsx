@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Calendar } from 'lucide-react';
+import { Search, Filter, Calendar, Award, CheckCircle2, Flame, Timer } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { TaskCard } from '../components/TaskCard';
-import { AddTaskModal } from '../components/AddTaskModal';
+import { isToday, isYesterday, format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 export function Tasks() {
   const { tasks, toggleTask, deleteTask } = useTask();
-  const { themeConfig } = useTheme();
+  const { theme, themeConfig } = useTheme();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const isDark = theme === 'dark';
+
+  const completedTasksCount = parseInt(localStorage.getItem(`completedTasksCount_${user?.uid}`) || '0');
+  const studyStreak = parseInt(localStorage.getItem(`studyStreak_${user?.uid}`) || '0');
+  const pomodoroSessions = parseInt(localStorage.getItem('pomodoroSessions') || '0');
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,6 +26,8 @@ export function Tasks() {
     const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
     return matchesSearch && matchesPriority;
   });
+
+  const activeTasks = filteredTasks.filter(t => !t.completed);
 
   const handleToggleTask = (id: string) => {
     toggleTask(id);
@@ -32,7 +40,7 @@ export function Tasks() {
   };
 
   return (
-    <div className="space-y-6 pb-32">
+    <div className="space-y-8 pb-32">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -41,18 +49,9 @@ export function Tasks() {
         <div>
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text}`}>Tasks</h1>
           <p className={themeConfig.textSecondary}>
-            Manage your study tasks and assignments
+            Manage and review your study assignments
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowAddModal(true)}
-          className={`${themeConfig.primary} ${themeConfig.primaryHover} text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium flex items-center gap-2 shadow-lg text-sm md:text-base`}
-        >
-          <Plus className="w-4 md:w-5 h-4 md:h-5" />
-          Add Task
-        </motion.button>
       </motion.div>
 
       {/* Search and Filter */}
@@ -60,7 +59,7 @@ export function Tasks() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`${themeConfig.card} p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700`}
+        className={`${themeConfig.card} p-3 md:p-4 rounded-xl shadow-sm border ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
       >
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -70,7 +69,7 @@ export function Tasks() {
               placeholder="Search tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-8 md:pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} dark:border-gray-600`}
+              className={`w-full pl-8 md:pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} ${isDark ? 'border-gray-600' : 'border-gray-200'}`}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -78,7 +77,7 @@ export function Tasks() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} dark:border-gray-600`}
+              className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base ${themeConfig.background} ${themeConfig.text} ${isDark ? 'border-gray-600' : 'border-gray-200'}`}
             >
               <option value="all">All Priorities</option>
               <option value="high">High</option>
@@ -89,54 +88,64 @@ export function Tasks() {
         </div>
       </motion.div>
 
-      {/* Tasks Grid */}
-      <AnimatePresence>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {filteredTasks.map((task, index) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              index={index}
-              onToggle={handleToggleTask}
-              onDelete={handleDeleteTask}
-            />
-          ))}
+      {/* Active Tasks Grid */}
+      {activeTasks.length > 0 ? (
+        <div className="space-y-4">
+          <h2 className={`text-lg font-semibold flex items-center gap-2 ${themeConfig.text}`}>
+            <Calendar className="w-5 h-5 text-blue-500" />
+            Active Tasks
+          </h2>
+          <AnimatePresence>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {activeTasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  onToggle={handleToggleTask}
+                  onDelete={handleDeleteTask}
+                />
+              ))}
+            </div>
+          </AnimatePresence>
         </div>
-      </AnimatePresence>
-
-      {filteredTasks.length === 0 && (
+      ) : (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`${themeConfig.card} p-6 md:p-10 rounded-2xl border ${isDark ? 'border-gray-700' : 'border-gray-100'} max-w-3xl mx-auto shadow-sm`}
         >
-          <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className={`text-lg ${themeConfig.textSecondary}`}>
-            {searchTerm || filterPriority !== 'all'
-              ? 'No tasks match your filters'
-              : 'No tasks yet! Start adding tasks to boost your productivity.'}
-          </p>
-          {!(searchTerm || filterPriority !== 'all') && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowAddModal(true)}
-              className={`${themeConfig.primary} ${themeConfig.primaryHover} text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 shadow-lg text-base mx-auto mt-6`}
-            >
-              <Plus className="w-5 h-5" />
-              Quick Add Task
-            </motion.button>
-          )}
-          <p className={`text-sm ${themeConfig.textSecondary} mt-2`}>
-            {searchTerm || filterPriority !== 'all' ? 'Try adjusting your search or filters' : ''}
-          </p>
+          <div className="text-center mb-10">
+            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${isDark ? 'bg-green-900/30' : 'bg-green-100'} mb-6`}>
+              <CheckCircle2 className="w-10 h-10 text-green-500" />
+            </div>
+            <h2 className={`text-2xl font-bold ${themeConfig.text} mb-3`}>All caught up!</h2>
+            <p className={`${themeConfig.textSecondary} max-w-md mx-auto`}>
+              You have no active tasks. Head over to the Schedule tab to add more, or take a moment to admire your productivity below.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
+              <Award className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+              <div className={`text-3xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'} mb-1`}>{completedTasksCount}</div>
+              <div className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'} font-medium`}>Tasks Crushed</div>
+            </div>
+            
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
+              <Flame className="w-8 h-8 text-orange-500 mx-auto mb-3" />
+              <div className={`text-3xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'} mb-1`}>{studyStreak}</div>
+              <div className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-800'} font-medium`}>Day Streak</div>
+            </div>
+
+            <div className={`p-6 rounded-xl ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'} text-center transform transition-transform hover:scale-105 duration-200`}>
+              <Timer className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+              <div className={`text-3xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'} mb-1`}>{pomodoroSessions}</div>
+              <div className={`text-sm ${isDark ? 'text-purple-300' : 'text-purple-800'} font-medium`}>Focus Sessions</div>
+            </div>
+          </div>
         </motion.div>
       )}
-
-      <AddTaskModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
     </div>
   );
 }

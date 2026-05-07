@@ -12,7 +12,8 @@ import {
   Zap,
   TrendingUp,
   Plus,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTask } from '../context/TaskContext';
@@ -23,6 +24,7 @@ import { useDailyStats } from '../context/DailyStatsContext';
 import { DashboardProfile } from '../components/DashboardProfile';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { AddTaskModal } from '../components/AddTaskModal';
 
 const getStoredUserData = (userId: string | undefined) => {
   const defaultData = {
@@ -55,6 +57,7 @@ export function Dashboard() {
   const { notifications, addNotification } = useNotification();
   const { user } = useAuth();
   const [userData, setUserData] = useState(() => getStoredUserData(user?.uid));
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
   // Update user data when user changes
   useEffect(() => {
@@ -154,6 +157,31 @@ export function Dashboard() {
   }, [tasks]);
 
   const todayClasses = getTodayClasses();
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
+  const nextAction = upcomingTasks[0]
+    ? {
+      label: 'Review next task',
+      title: upcomingTasks[0].title,
+      description: `${upcomingTasks[0].category} task marked ${upcomingTasks[0].priority} priority`,
+      path: '/tasks',
+      action: 'Open tasks'
+    }
+    : todayClasses[0]
+      ? {
+        label: 'Prepare for class',
+        title: todayClasses[0].subject,
+        description: `${todayClasses[0].type} at ${todayClasses[0].time}`,
+        path: '/timetable',
+        action: 'View schedule'
+      }
+      : {
+        label: 'Build momentum',
+        title: 'Start a focus session',
+        description: 'A short focused block is the easiest way to move today forward.',
+        path: '/pomodoro',
+        action: 'Start focus'
+      };
 
   return (
     <div className="space-y-6 pb-4 md:pb-28">
@@ -165,16 +193,18 @@ export function Dashboard() {
       >
         <div>
           <h1 className={`text-2xl md:text-3xl font-bold ${themeConfig.text} mb-2`}>
-            Welcome back, {userData.fullName}! 👋
+            {greeting}, {userData.fullName}
           </h1>
           <p className={themeConfig.textSecondary}>
-            Here's what's happening with your studies today
+            Your study workspace is ready. Pick the next best move.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <DashboardProfile />
         </div>
       </motion.div>
+
+
 
       {/* Quick Actions */}
       <motion.div
@@ -222,7 +252,7 @@ export function Dashboard() {
             {
               icon: Zap,
               label: 'Add Task',
-              path: '/tasks',
+              path: '__add_task__',
               lightBg: 'bg-orange-50',
               darkBg: 'bg-orange-900',
               lightIcon: 'text-orange-600',
@@ -236,24 +266,36 @@ export function Dashboard() {
             const iconColor = isDark ? action.darkIcon : action.lightIcon;
             const hoverBg = isDark ? action.darkHover : action.lightHover;
 
+            const cardContent = (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm cursor-pointer`}
+              >
+                <div className={`p-2 rounded-lg ${iconColor}`}>
+                  <action.icon className="w-6 h-6" />
+                </div>
+                <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
+                  {action.label}
+                </span>
+              </motion.div>
+            );
+
+            if (action.path === '__add_task__') {
+              return (
+                <div key={action.label} onClick={() => setShowAddTaskModal(true)}>
+                  {cardContent}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={action.label}
                 to={action.path}
                 className="block"
               >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-3 p-4 ${bgColor} ${hoverBg} rounded-xl transition-all duration-200 shadow-sm`}
-                >
-                  <div className={`p-2 rounded-lg ${iconColor}`}>
-                    <action.icon className="w-6 h-6" />
-                  </div>
-                  <span className={`text-sm font-medium ${themeConfig.text} text-center`}>
-                    {action.label}
-                  </span>
-                </motion.div>
+                {cardContent}
               </Link>
             );
           })}
@@ -485,6 +527,12 @@ export function Dashboard() {
         </motion.div>
       </div>
       <div className="h-32 md:h-0"></div>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showAddTaskModal}
+        onClose={() => setShowAddTaskModal(false)}
+      />
     </div>
   );
 }

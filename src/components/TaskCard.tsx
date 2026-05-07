@@ -13,16 +13,21 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
-  const { themeConfig } = useTheme();
+  const { theme, themeConfig } = useTheme();
   const [showImage, setShowImage] = useState(false);
+  const isDark = theme === 'dark';
 
   const priorityColors: { [key: string]: string } = {
-    high: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800',
-    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800',
-    low: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'
+    high: isDark ? 'bg-red-900/50 text-red-300 border-red-800' : 'bg-red-100 text-red-800 border-red-200',
+    medium: isDark ? 'bg-yellow-900/50 text-yellow-300 border-yellow-800' : 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    low: isDark ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-200'
   };
 
   const isOverdue = new Date(task.dueDate) < new Date() && !task.completed;
+
+  const cardBg = isOverdue
+    ? (isDark ? 'border-red-800 bg-red-900/20' : 'border-red-200 bg-red-50')
+    : (isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-white');
 
   return (
     <motion.div
@@ -31,13 +36,9 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
       whileHover={{ y: -5 }}
-      className={`${themeConfig.card} p-6 rounded-xl shadow-sm border ${
+      className={`p-6 rounded-xl shadow-sm border transition-colors ${
         task.completed ? 'opacity-75' : ''
-      } ${
-        isOverdue 
-          ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' 
-          : 'border-gray-100 dark:border-gray-700'
-      }`}
+      } ${cardBg}`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -55,8 +56,8 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
             onClick={() => onToggle(task.id)}
             className={`p-2 rounded-lg ${
               task.completed 
-                ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400' 
-                : 'bg-gray-100 text-gray-400 hover:bg-green-100 hover:text-green-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-green-900/50 dark:hover:text-green-400'
+                ? (isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-600')
+                : (isDark ? 'bg-gray-700 text-gray-400 hover:bg-green-900/50 hover:text-green-400' : 'bg-gray-100 text-gray-400 hover:bg-green-100 hover:text-green-600')
             } transition-colors duration-200`}
           >
             <Check className="w-4 h-4" />
@@ -65,7 +66,9 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onDelete(task.id)}
-            className="p-2 rounded-lg bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-red-900/50 dark:hover:text-red-400 transition-colors duration-200"
+            className={`p-2 rounded-lg ${
+              isDark ? 'bg-gray-700 text-gray-400 hover:bg-red-900/50 hover:text-red-400' : 'bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600'
+            } transition-colors duration-200`}
           >
             <Trash2 className="w-4 h-4" />
           </motion.button>
@@ -95,7 +98,7 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
         <div className="flex items-center gap-4">
           <div className={`flex items-center gap-1 text-xs ${themeConfig.textSecondary}`}>
             <Calendar className="w-3 h-3" />
-            <span className={isOverdue ? 'text-red-600 dark:text-red-400 font-medium' : ''}>
+            <span className={isOverdue ? (isDark ? 'text-red-400 font-medium' : 'text-red-600 font-medium') : ''}>
               {format(new Date(task.dueDate), 'MMM dd')}
             </span>
           </div>
@@ -103,7 +106,7 @@ export function TaskCard({ task, index, onToggle, onDelete }: TaskCardProps) {
             {task.priority}
           </span>
         </div>
-        <span className={`text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 rounded-full`}>
+        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
           {task.category}
         </span>
       </div>

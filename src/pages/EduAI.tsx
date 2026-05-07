@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, RotateCcw, Loader2, History, Menu, Paperclip, X, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useChatHistory } from '../context/ChatHistoryContext';
+import { useTask } from '../context/TaskContext';
+import { usePomodoro } from '../context/PomodoroContext';
 import { geminiService, Message } from '../services/geminiService';
 import { validateFile, formatFileSize } from '../types/file';
 import toast from 'react-hot-toast';
@@ -45,6 +48,9 @@ export function EduAI() {
         saveMessage,
         clearCurrentConversation
     } = useChatHistory();
+    const { tasks, addTask } = useTask();
+    const { switchMode, toggleTimer, setTimeLeft } = usePomodoro();
+    const navigate = useNavigate();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -84,12 +90,7 @@ export function EduAI() {
         scrollToBottom();
     }, [messages, isTyping]);
 
-    // Auto-create conversation when user starts typing without one
-    useEffect(() => {
-        if (messages.length > 0 && !currentConversation) {
-            createNewConversation();
-        }
-    }, [messages, currentConversation, createNewConversation]);
+    // Auto-creation handled directly by ChatHistoryContext now
 
     const handleSendMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -111,7 +112,7 @@ export function EduAI() {
         setIsTyping(true);
 
         // Save user message to history
-        await saveMessage(userMessage);
+        const savedConv = await saveMessage(userMessage);
 
         // Reset textarea height
         if (textareaRef.current) {
@@ -120,28 +121,72 @@ export function EduAI() {
 
         try {
             let response: string;
+            let actionPerformed: string | undefined;
+
+            const today = new Date();
+            const appContext = `
+Today's Date: ${today.toISOString().split('T')[0]} (${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})
+Current Time: ${today.toLocaleTimeString()}
+Active Tasks: ${tasks.filter(t => !t.completed).length} pending
+            `;
+
+            const toolExecutors = {
+                create_task: async (args: any) => {
+                    const dueDate = args.due_date || new Date().toISOString().split('T')[0];
+                    const category = args.category || 'General';
+                    const priority = args.priority || 'medium';
+                    await addTask({
+                        title: args.title,
+                        description: '',
+                        completed: false,
+                        priority,
+                        dueDate,
+                        category
+                    });
+                    toast.success(`Agent added task: ${args.title}`);
+                    return `Task "${args.title}" created successfully with ${priority} priority, due ${dueDate}, category: ${category}.`;
+                },
+                start_pomodoro: async (args: any) => {
+                    const mode = args.mode || 'work';
+                    const customMinutes = args.duration_minutes;
+                    switchMode(mode as 'work' | 'short' | 'long', true);
+                    // If a custom duration was provided, override the timer
+                    if (customMinutes && customMinutes > 0) {
+                        setTimeout(() => setTimeLeft(Math.round(customMinutes * 60)), 50);
+                    }
+                    // Auto-start the timer after switching mode
+                    setTimeout(() => toggleTimer(), 150);
+                    // Navigate to the Pomodoro page so user sees the timer
+                    setTimeout(() => navigate('/pomodoro'), 500);
+                    const durationText = customMinutes ? `${customMinutes} minutes` : `${mode} mode`;
+                    return `Pomodoro timer started for ${durationText}. Navigating to timer...`;
+                }
+            };
 
             // Send with file if one is uploaded
             if (uploadedFile) {
-                response = await geminiService.sendMessageWithFile(userMessage.content, uploadedFile);
+                const res = await geminiService.sendMessageWithFile(userMessage.content, uploadedFile);
+                response = res.text;
                 // Clear uploaded file after sending
                 setUploadedFile(null);
             } else {
-                response = await geminiService.sendMessage(userMessage.content);
+                const res = await geminiService.sendMessage(userMessage.content, messages, appContext, toolExecutors);
+                response = res.text;
+                actionPerformed = res.actionPerformed;
             }
 
             const aiMessage: Message = {
                 id: uuidv4(),
                 role: 'assistant',
-                content: response,
+                content: actionPerformed ? `*✨ ${actionPerformed}*\n\n${response}` : response,
                 timestamp: new Date(),
             };
 
             setIsTyping(false);
             setMessages((prev) => [...prev, aiMessage]);
 
-            // Save AI message to history
-            await saveMessage(aiMessage);
+            // Save AI message to history — use same conversation ID
+            await saveMessage(aiMessage, savedConv?.id);
         } catch (error) {
             setIsTyping(false);
             toast.error(error instanceof Error ? error.message : 'Failed to get response');
